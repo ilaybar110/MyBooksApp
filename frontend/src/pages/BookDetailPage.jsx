@@ -1,0 +1,351 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import HighlightCard from '../components/HighlightCard.jsx';
+import EmptyState from '../components/EmptyState.jsx';
+import { ConfirmModal } from '../components/Modal.jsx';
+import {
+  getBook,
+  getHighlights,
+  deleteBook,
+  updateHighlight,
+  deleteHighlight,
+  getAllTags,
+  addTag,
+} from '../utils/storage.js';
+
+export default function BookDetailPage({ navigate, bookId }) {
+  const [book, setBook] = useState(null);
+  const [highlights, setHighlights] = useState([]);
+  const [allTags, setAllTags] = useState([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const loadData = useCallback(() => {
+    const b = getBook(bookId);
+    if (!b) {
+      navigate('library');
+      return;
+    }
+    setBook(b);
+    setHighlights(getHighlights(bookId));
+    setAllTags(getAllTags());
+  }, [bookId, navigate]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleFavoriteToggle = (id, isFavorite) => {
+    updateHighlight(id, { isFavorite });
+    setHighlights(prev => prev.map(h => h.id === id ? { ...h, isFavorite } : h));
+  };
+
+  const handleDeleteHighlight = (id) => {
+    deleteHighlight(id);
+    setHighlights(prev => prev.filter(h => h.id !== id));
+    // Update book highlight count
+    setBook(prev => prev ? { ...prev, highlights: (prev.highlights || []).filter(hid => hid !== id) } : prev);
+  };
+
+  const handleTagAdd = (highlightId, tag) => {
+    const h = highlights.find(x => x.id === highlightId);
+    if (!h) return;
+    const newTags = [...new Set([...(h.tags || []), tag])];
+    updateHighlight(highlightId, { tags: newTags });
+    setHighlights(prev => prev.map(x => x.id === highlightId ? { ...x, tags: newTags } : x));
+    addTag(tag);
+    setAllTags(getAllTags());
+  };
+
+  const handleTagRemove = (highlightId, tag) => {
+    const h = highlights.find(x => x.id === highlightId);
+    if (!h) return;
+    const newTags = (h.tags || []).filter(t => t !== tag);
+    updateHighlight(highlightId, { tags: newTags });
+    setHighlights(prev => prev.map(x => x.id === highlightId ? { ...x, tags: newTags } : x));
+  };
+
+  const handleDeleteBook = () => {
+    deleteBook(bookId);
+    navigate('library');
+  };
+
+  const filteredHighlights = highlights.filter(h => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      h.markedText?.toLowerCase().includes(q) ||
+      h.fullContext?.toLowerCase().includes(q) ||
+      (h.tags || []).some(t => t.toLowerCase().includes(q))
+    );
+  });
+
+  if (!book) return null;
+
+  const favoriteCount = highlights.filter(h => h.isFavorite).length;
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
+      {/* Back header */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '16px 20px',
+          paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
+          background: 'var(--bg-primary)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <button
+          onClick={() => navigate('library')}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            color: 'var(--accent-primary)',
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: '14px',
+            fontWeight: 500,
+            padding: '4px 0',
+            minHeight: '44px',
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          Library
+        </button>
+
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--text-muted)',
+            padding: '8px',
+            minHeight: '44px',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14H6L5 6" />
+            <path d="M10 11v6M14 11v6" />
+            <path d="M9 6V4h6v2" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Book hero */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '20px',
+          padding: '24px 20px',
+          background: 'var(--bg-card)',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        {/* Cover */}
+        <div
+          style={{
+            width: '80px',
+            flexShrink: 0,
+            aspectRatio: '2/3',
+            borderRadius: '6px',
+            overflow: 'hidden',
+            background: 'var(--bg-secondary)',
+            boxShadow: '0 4px 12px rgba(44,36,32,0.15)',
+          }}
+        >
+          {book.coverPhoto ? (
+            <img
+              src={book.coverPhoto}
+              alt={book.title}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          ) : (
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              </svg>
+            </div>
+          )}
+        </div>
+
+        {/* Info */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h1
+            style={{
+              fontFamily: 'Lora, serif',
+              fontSize: '20px',
+              fontWeight: 700,
+              color: 'var(--text-primary)',
+              margin: 0,
+              lineHeight: 1.25,
+              marginBottom: '6px',
+            }}
+          >
+            {book.title}
+          </h1>
+          <p
+            style={{
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '14px',
+              color: 'var(--text-secondary)',
+              margin: 0,
+              marginBottom: '10px',
+            }}
+          >
+            {book.author}
+          </p>
+
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <span className="lang-badge">{(book.language || 'en').toUpperCase()}</span>
+            <span
+              style={{
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: '12px',
+                color: 'var(--text-muted)',
+              }}
+            >
+              {highlights.length} highlights
+            </span>
+            {favoriteCount > 0 && (
+              <span
+                style={{
+                  fontFamily: 'DM Sans, sans-serif',
+                  fontSize: '12px',
+                  color: 'var(--accent-favorite)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                }}
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                {favoriteCount} fav
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Action bar */}
+      <div
+        style={{
+          padding: '16px 20px',
+          display: 'flex',
+          gap: '12px',
+          background: 'var(--bg-primary)',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <button
+          className="btn-primary"
+          style={{ flex: 1 }}
+          onClick={() => navigate('add-highlights', { bookId: book.id })}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
+          Add Highlights
+        </button>
+      </div>
+
+      {/* Search highlights */}
+      {highlights.length > 0 && (
+        <div style={{ padding: '16px 20px 0' }}>
+          <div style={{ position: 'relative' }}>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--text-muted)"
+              strokeWidth="2"
+              style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="search"
+              className="input-field"
+              placeholder="Search highlights..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{ paddingLeft: '34px', fontSize: '14px' }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Highlights list */}
+      <div style={{ padding: '16px 20px 20px' }}>
+        {filteredHighlights.length === 0 ? (
+          searchQuery ? (
+            <EmptyState
+              title="No results"
+              description={`No highlights match "${searchQuery}"`}
+            />
+          ) : (
+            <EmptyState
+              icon={
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                </svg>
+              }
+              title="No highlights yet"
+              description="Photograph book pages with pencil lines in the right margin to extract highlights."
+              action={
+                <button
+                  className="btn-primary"
+                  onClick={() => navigate('add-highlights', { bookId: book.id })}
+                >
+                  Add Highlights
+                </button>
+              }
+            />
+          )
+        ) : (
+          filteredHighlights.map(highlight => (
+            <HighlightCard
+              key={highlight.id}
+              highlight={highlight}
+              onFavoriteToggle={handleFavoriteToggle}
+              onDelete={handleDeleteHighlight}
+              onTagAdd={handleTagAdd}
+              onTagRemove={handleTagRemove}
+              allTags={allTags}
+              navigate={navigate}
+            />
+          ))
+        )}
+      </div>
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteBook}
+        title="Delete Book"
+        message={`Are you sure you want to delete "${book.title}"? This will also delete all ${highlights.length} highlight(s). This cannot be undone.`}
+        confirmLabel="Delete Book"
+        danger
+      />
+    </div>
+  );
+}

@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>BookMarks</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Serif+Hebrew:wght@300;400;600;700&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #F7F4EF;
+      --bg2: #EDEAE3;
+      --card: #FFFFFF;
+      --t1: #1A1615;
+      --t2: #6B5D56;
+      --t3: #9E8E86;
+      --ac: #C2651A;
+      --ac2: #A8530E;
+      --gold: #C4933A;
+      --bd: #E3DCD4;
+      --tag: #EAE3D8;
+      --err: #B83232;
+      --tr: 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0; padding: 0;
+      background: var(--bg);
+      color: var(--t1);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100dvh;
+      overscroll-behavior: none;
+    }
+    #root { min-height: 100dvh; display: flex; flex-direction: column; }
+    .page { max-width: 480px; margin: 0 auto; width: 100%; min-height: 100dvh; position: relative; background: var(--bg); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--bd); border-radius: 2px; }
+
+    /* Transitions */
+    button, a, input, select, textarea { transition: all var(--tr); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      border: none; border-radius: 10px; cursor: pointer;
+      font-family: 'Outfit', sans-serif; font-weight: 500; font-size: 14px;
+      min-height: 44px; padding: 0 20px;
+      transition: transform var(--tr), box-shadow var(--tr), background var(--tr), opacity var(--tr);
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
+    .btn-p { background: var(--ac); color: #fff; }
+    .btn-p:hover:not(:disabled) { background: var(--ac2); }
+    .btn-s { background: var(--bg2); color: var(--t1); border: 1px solid var(--bd); }
+    .btn-s:hover:not(:disabled) { background: var(--bd); }
+    .btn-d { background: var(--err); color: #fff; }
+    .btn-d:hover:not(:disabled) { background: #9e2a2a; }
+    .btn-w { width: 100%; }
+    .btn-lg { font-size: 15px; min-height: 50px; }
+
+    /* Input */
+    .inp {
+      width: 100%; background: var(--bg2); border: 1.5px solid var(--bd);
+      border-radius: 10px; padding: 11px 14px;
+      font-family: 'Outfit', sans-serif; font-size: 14px; color: var(--t1);
+      outline: none; min-height: 44px;
+      transition: border-color var(--tr), box-shadow var(--tr);
+    }
+    .inp:focus { border-color: var(--ac); box-shadow: 0 0 0 3px rgba(194,101,26,0.1); }
+    .inp::placeholder { color: var(--t3); }
+    textarea.inp { resize: vertical; min-height: 80px; }
+
+    /* Tag pill */
+    .tag {
+      background: var(--tag); color: var(--t2);
+      border-radius: 20px; padding: 4px 11px;
+      font-size: 12px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 5px;
+      white-space: nowrap;
+    }
+
+    /* Card */
+    .card {
+      background: var(--card); border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(26,22,21,0.06), 0 1px 2px rgba(26,22,21,0.04);
+      border: 1px solid rgba(227,220,212,0.6);
+    }
+
+    /* Lang badge */
+    .lang {
+      background: rgba(26,22,21,0.08); color: var(--t2);
+      border-radius: 5px; padding: 2px 7px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* Animations */
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideUp { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes shimmer {
+      0% { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .fade-up { animation: fadeUp 280ms ease forwards; }
+    .slide-up { animation: slideUp 320ms cubic-bezier(0.16,1,0.3,1) forwards; }
+    .shimmer-bg {
+      background: linear-gradient(90deg, var(--bg2) 25%, var(--bd) 50%, var(--bg2) 75%);
+      background-size: 400px 100%;
+      animation: shimmer 1.6s infinite;
+    }
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white; border-radius: 50%;
+      animation: spin 0.8s linear infinite; flex-shrink: 0;
+    }
+    .spinner-d {
+      border: 2px solid rgba(194,101,26,0.2);
+      border-top-color: var(--ac);
+    }
+
+    /* Staggered fade for lists */
+    .stagger > * { opacity: 0; animation: fadeUp 300ms ease forwards; }
+    .stagger > *:nth-child(1)  { animation-delay: 0ms; }
+    .stagger > *:nth-child(2)  { animation-delay: 50ms; }
+    .stagger > *:nth-child(3)  { animation-delay: 100ms; }
+    .stagger > *:nth-child(4)  { animation-delay: 150ms; }
+    .stagger > *:nth-child(5)  { animation-delay: 200ms; }
+    .stagger > *:nth-child(6)  { animation-delay: 250ms; }
+    .stagger > *:nth-child(n+7) { animation-delay: 300ms; }
+
+    /* Books grid — asymmetric masonry offset */
+    .books-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; }
+    .books-grid > *:nth-child(even) { margin-top: 22px; }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px; z-index: 40;
+      background: rgba(247,244,239,0.85);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255,255,255,0.55);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 -1px 0 rgba(227,220,212,0.5);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* Overlay */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(26,22,21,0.45);
+      backdrop-filter: blur(3px);
+      z-index: 50;
+    }
+
+    /* Modal sheet */
+    .modal-sheet {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px; z-index: 51;
+      background: var(--card);
+      border-radius: 22px 22px 0 0;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      max-height: 90vh;
+      display: flex; flex-direction: column;
+    }
+
+    /* Section labels */
+    .section-label {
+      font-size: 11px; font-weight: 700; color: var(--t3);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin: 0 0 10px;
+    }
+
+    /* Highlight item — left accent line, no heavy card */
+    .hl-item {
+      padding: 16px 0;
+      border-bottom: 1px solid var(--bd);
+    }
+    .hl-item:last-child { border-bottom: none; }
+    .hl-ltr { padding-left: 14px; border-left: 2.5px solid var(--ac); margin-left: -2px; }
+    .hl-rtl { padding-right: 14px; border-right: 2.5px solid var(--ac); margin-right: -2px; direction: rtl; }
+
+    /* Settings rows */
+    .settings-card { background: var(--card); border-radius: 14px; border: 1px solid rgba(227,220,212,0.7); overflow: hidden; }
+    .settings-row {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--bd);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .settings-row:last-child { border-bottom: none; }
+
+    /* Progress bar */
+    .progress-track { height: 5px; background: var(--bg2); border-radius: 3px; overflow: hidden; }
+    .progress-bar { height: 100%; border-radius: 3px; transition: width 600ms ease; }
+
+    /* Segment control */
+    .seg { display: flex; background: var(--bg2); border-radius: 9px; padding: 3px; border: 1px solid var(--bd); }
+    .seg-btn {
+      flex: 1; padding: 8px 12px; border: none; border-radius: 7px; cursor: pointer;
+      font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500;
+      background: transparent; color: var(--t2); transition: all var(--tr);
+    }
+    .seg-btn.active { background: var(--card); color: var(--ac); font-weight: 600; box-shadow: 0 1px 4px rgba(26,22,21,0.08); }
+
+    /* Cover placeholder */
+    .cover-ph {
+      width: 100%; aspect-ratio: 2/3; background: var(--bg2);
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(145deg, var(--bg2) 0%, var(--bd) 100%);
+    }
+
+    /* Photo queue */
+    .photo-queue { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
+    .photo-item { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 3/4; background: var(--bg2); }
+
+    /* Upload drop zone */
+    .drop-zone {
+      border: 2px dashed var(--bd); border-radius: 14px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px; padding: 32px 20px; cursor: pointer;
+      transition: border-color var(--tr), background var(--tr);
+    }
+    .drop-zone:hover { border-color: var(--ac); background: rgba(194,101,26,0.03); }
+
+    /* Empty state */
+    .empty {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 52px 24px; text-align: center; gap: 12px;
+    }
+    .empty-icon {
+      width: 64px; height: 64px; border-radius: 20px;
+      background: var(--bg2); display: flex; align-items: center; justify-content: center;
+      margin-bottom: 4px;
+    }
+
+    /* Back button */
+    .back-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: none; border: none; cursor: pointer;
+      color: var(--ac); font-family: 'Outfit', sans-serif;
+      font-size: 14px; font-weight: 500; padding: 4px 0; min-height: 44px;
+    }
+
+    /* Safe area */
+    .safe-top { padding-top: calc(16px + env(safe-area-inset-top, 0px)) !important; }
+    .pb-nav { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+/* ─── Storage ─── */
+const SK = 'bookmarks_app';
+const AK = 'bookmarks_api_key';
+const DEF = { version:1, books:[], highlights:[], tags:[], settings:{ defaultLanguage:'en', sortOrder:'dateAdded' } };
+
+function gs() {
+  try {
+    const raw = localStorage.getItem(SK);
+    if (!raw) { const d = {...DEF}; localStorage.setItem(SK, JSON.stringify(d)); return d; }
+    const p = JSON.parse(raw);
+    if (!p.books) p.books = [];
+    if (!p.highlights) p.highlights = [];
+    if (!p.tags) p.tags = [];
+    if (!p.settings) p.settings = { ...DEF.settings };
+    return p;
+  } catch(e) { return {...DEF}; }
+}
+function ss(data) {
+  try { localStorage.setItem(SK, JSON.stringify(data)); }
+  catch(e) { if (e.name === 'QuotaExceededError') throw new Error('Storage full. Export and clear data.'); throw e; }
+}
+function addBook(b) { const s=gs(); s.books.push({...b,dateAdded:b.dateAdded||new Date().toISOString(),highlights:b.highlights||[],tags:b.tags||[]}); ss(s); return s.books[s.books.length-1]; }
+function getBook(id) { return gs().books.find(b=>b.id===id)||null; }
+function deleteBook(id) { const s=gs(); s.highlights=s.highlights.filter(h=>h.bookId!==id); s.books=s.books.filter(b=>b.id!==id); ss(s); }
+function addHighlight(h) { const s=gs(); const nh={...h,dateAdded:h.dateAdded||new Date().toISOString(),isFavorite:h.isFavorite||false,tags:h.tags||[],isEdited:h.isEdited||false}; s.highlights.push(nh); const bi=s.books.findIndex(b=>b.id===h.bookId); if(bi!==-1){if(!s.books[bi].highlights)s.books[bi].highlights=[];s.books[bi].highlights.push(nh.id);} ss(s); return nh; }
+function updateHighlight(id, upd) { const s=gs(); const i=s.highlights.findIndex(h=>h.id===id); if(i===-1)return null; s.highlights[i]={...s.highlights[i],...upd}; ss(s); return s.highlights[i]; }
+function delHighlight(id) { const s=gs(); const h=s.highlights.find(x=>x.id===id); if(!h)return; s.highlights=s.highlights.filter(x=>x.id!==id); const bi=s.books.findIndex(b=>b.id===h.bookId); if(bi!==-1)s.books[bi].highlights=(s.books[bi].highlights||[]).filter(x=>x!==id); ss(s); }
+function getHighlights(bookId) { const s=gs(); return bookId ? s.highlights.filter(h=>h.bookId===bookId) : s.highlights; }
+function getAllTags() { return gs().tags||[]; }
+function addTag(t) { const s=gs(); if(!s.tags)s.tags=[]; if(t&&!s.tags.includes(t)){s.tags.push(t);ss(s);} }
+function renameTag(old,nw) { const s=gs(); s.tags=(s.tags||[]).map(t=>t===old?nw:t); s.books=s.books.map(b=>({...b,tags:(b.tags||[]).map(t=>t===old?nw:t)})); s.highlights=s.highlights.map(h=>({...h,tags:(h.tags||[]).map(t=>t===old?nw:t)})); ss(s); }
+function deleteTag(t) { const s=gs(); s.tags=(s.tags||[]).filter(x=>x!==t); s.books=s.books.map(b=>({...b,tags:(b.tags||[]).filter(x=>x!==t)})); s.highlights=s.highlights.map(h=>({...h,tags:(h.tags||[]).filter(x=>x!==t)})); ss(s); }
+function getSettings() { return gs().settings||DEF.settings; }
+function updateSettings(u) { const s=gs(); s.settings={...s.settings,...u}; ss(s); return s.settings; }
+function exportData() { return JSON.stringify(gs(),null,2); }
+function importData(json) { try { const d=JSON.parse(json); if(!d.books||!d.highlights)throw new Error('Missing books or highlights'); if(!d.version)d.version=1; if(!d.tags)d.tags=[]; if(!d.settings)d.settings={...DEF.settings}; ss(d); } catch(e){throw new Error('Import failed: '+e.message);} }
+function clearAllData() { ss({...DEF}); }
+function getApiKey() { return localStorage.getItem(AK)||''; }
+function saveApiKey(k) { k ? localStorage.setItem(AK,k.trim()) : localStorage.removeItem(AK); }
+function getStorageSize() { try { return new Blob([localStorage.getItem(SK)||'']).size; } catch { return 0; } }
+
+/* ─── Helpers ─── */
+function genId() { return Math.random().toString(36).slice(2)+Date.now().toString(36); }
+function isHeb(t) { return t && /[\u0590-\u05FF]/.test(t); }
+function getDir(t) { return isHeb(t)?'rtl':'ltr'; }
+function truncate(s,n=36) { return s&&s.length>n?s.slice(0,n).trim()+'…':s||''; }
+function fmtDate(iso) {
+  if(!iso)return '';
+  const d=new Date(iso),now=new Date(),diff=Math.floor((now-d)/(86400000));
+  if(diff===0){const h=Math.floor((now-d)/3600000);if(h===0){const m=Math.floor((now-d)/60000);return m<2?'just now':`${m}m ago`;}return h===1?'1h ago':`${h}h ago`;}
+  if(diff===1)return 'yesterday';if(diff<7)return `${diff}d ago`;if(diff<30)return `${Math.floor(diff/7)}w ago`;
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function fmtBytes(b) { if(b<1024)return b+' B'; if(b<1048576)return (b/1024).toFixed(1)+' KB'; return (b/1048576).toFixed(2)+' MB'; }
+function sortBooks(books,order) {
+  const s=[...books];
+  if(order==='title')return s.sort((a,b)=>(a.title||'').localeCompare(b.title||''));
+  if(order==='author')return s.sort((a,b)=>(a.author||'').localeCompare(b.author||''));
+  return s.sort((a,b)=>new Date(b.dateAdded)-new Date(a.dateAdded));
+}
+function fileToB64(f) { return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=()=>rej(new Error('Failed to read file'));r.readAsDataURL(f);}); }
+function compressImg(b64,maxW=800,q=0.75) {
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    img.onload=()=>{
+      let {width:w,height:h}=img;
+      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      res(c.toDataURL('image/jpeg',q));
+    };
+    img.onerror=()=>rej(new Error('Failed to compress image'));
+    img.src=b64;
+  });
+}
+
+/* ─── Gemini ─── */
+const GM_MODELS=['gemini-2.5-flash','gemini-2.0-flash','gemini-2.0-flash-lite'];
+const GM_API='v1beta';
+function gemUrl(model,k){return `https://generativelanguage.googleapis.com/${GM_API}/models/${model}:generateContent?key=${k}`;}
+console.log('[MyBooksApp] Gemini model sequence:', GM_MODELS.join(' → '), '| endpoint:', GM_API);
+
+/* Helper: list all models that support generateContent for the stored API key.
+   Call listAvailableModels() from the browser console to debug model-not-found errors. */
+async function listAvailableModels(){
+  const k=getApiKey();
+  if(!k){console.warn('[MyBooksApp] No API key stored — set it in Settings first.');return;}
+  const res=await fetch(`https://generativelanguage.googleapis.com/${GM_API}/models?key=${k}`);
+  if(!res.ok){console.error('[MyBooksApp] listModels HTTP',res.status);return;}
+  const data=await res.json();
+  const supported=(data.models||[])
+    .filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent'))
+    .map(m=>m.name);
+  console.log('[MyBooksApp] Models supporting generateContent:\n'+supported.join('\n'));
+  return supported;
+}
+function buildPrompt(lang){
+  const he=lang==='he';
+  return `You are analyzing a photograph of a book page from a ${he?'Hebrew (right-to-left)':'printed'} book.
+
+The reader has marked passages using a PENCIL. The pencil mark is a thin vertical line or small bracket drawn in the WHITE MARGIN SPACE to the RIGHT of the printed text block. The mark runs alongside 1–5 lines of text to indicate which lines are the selected quote.
+
+${he?`HEBREW BOOK SPECIFICS:
+- Hebrew text reads RIGHT TO LEFT, so the right edge of the text block is where each line STARTS.
+- The pencil mark appears in the narrow white margin to the RIGHT of the text column — between the text and the right edge of the page.
+- The mark may be very faint (light gray pencil), a short vertical stroke or a small bracket [ shape.`:`ENGLISH BOOK SPECIFICS:
+- Look for faint pencil lines in the right margin beside lines of text.`}
+
+CRITICAL RULES:
+- ONLY look for marks in the RIGHT margin (white space to the right of the text block).
+- The mark will be a thin vertical pencil stroke or bracket — possibly very faint.
+- Do NOT look for underlines beneath words.
+- Do NOT look for highlights or colored marks.
+- Do NOT look for marks on the LEFT side of the text.
+- Only count marks you are confident about. Do NOT guess or hallucinate marks.
+
+YOUR TASK:
+1. Scan the RIGHT margin of the page carefully for any pencil marks.
+2. For each pencil mark found, identify which lines of text it sits beside.
+3. Extract those lines as the marked passage.
+
+Return ONLY valid JSON:
+{
+  "highlights": [
+    { "markedText": "exact text beside the pencil mark", "fullContext": "all the text on the page that is NOT beside the pencil mark — the sentences before and after the marked passage", "pageNumber": null }
+  ]
+}
+If no right-margin pencil marks are visible: {"highlights":[]}`;
+}
+
+/* ─── SVG Icons ─── */
+const IC = {
+  back: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>,
+  next: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>,
+  plus: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  x: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  check: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>,
+  search: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+  book: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
+  bookmark: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>,
+  gear: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+  star: (fill)=><svg width="17" height="17" viewBox="0 0 24 24" fill={fill?'currentColor':'none'} stroke="currentColor" strokeWidth="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  trash: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>,
+  filter: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
+  cam: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>,
+  play: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>,
+  down: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>,
+  photo: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
+  eye: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+  eyeOff: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
+  export: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+  import: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+  edit: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+  err: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+};
+
+/* ─── Spinner ─── */
+function Spin({dark}) { return <div className={`spinner${dark?'':''}`} style={dark?{borderColor:'rgba(194,101,26,0.2)',borderTopColor:'var(--ac)'}:{}}/>; }
+
+/* ─── TagPill ─── */
+function TagPill({tag, onRemove, active, onClick}) {
+  return (
+    <span
+      className="tag"
+      onClick={onClick}
+      style={{
+        cursor:onClick?'pointer':'default',
+        background: active ? 'var(--ac)' : 'var(--tag)',
+        color: active ? '#fff' : 'var(--t2)',
+        transition: 'all var(--tr)',
+      }}
+    >
+      {tag}
+      {onRemove && (
+        <button onClick={e=>{e.stopPropagation();onRemove();}} style={{background:'none',border:'none',padding:'0 0 0 2px',cursor:'pointer',color:'inherit',display:'flex',alignItems:'center',lineHeight:1}}>
+          {IC.x}
+        </button>
+      )}
+    </span>
+  );
+}
+
+/* ─── ConfirmModal ─── */
+function ConfirmModal({isOpen, onClose, onConfirm, title, message, confirmLabel='Confirm', danger=false}) {
+  useEffect(()=>{
+    if(isOpen)document.body.style.overflow='hidden';
+    else document.body.style.overflow='';
+    return ()=>{document.body.style.overflow='';};
+  },[isOpen]);
+  if(!isOpen)return null;
+  return (
+    <>
+      <div className="overlay" onClick={onClose}/>
+      <div className="modal-sheet slide-up">
+        <div style={{width:36,height:4,background:'var(--bd)',borderRadius:2,margin:'14px auto 0'}}/>
+        <div style={{padding:'18px 20px 14px',borderBottom:'1px solid var(--bd)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <h2 style={{margin:0,fontSize:17,fontWeight:600,color:'var(--t1)'}}>{title}</h2>
+          <button onClick={onClose} style={{background:'var(--bg2)',border:'none',borderRadius:'50%',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--t2)'}}>
+            {IC.x}
+          </button>
+        </div>
+        <div style={{padding:'20px',flex:1,overflowY:'auto'}}>
+          <p style={{margin:0,fontSize:14,color:'var(--t2)',lineHeight:1.6}}>{message}</p>
+        </div>
+        <div style={{padding:'16px 20px',borderTop:'1px solid var(--bd)',display:'flex',gap:10}}>
+          <button className="btn btn-s" style={{flex:1}} onClick={onClose}>Cancel</button>
+          <button className={`btn ${danger?'btn-d':'btn-p'}`} style={{flex:1}} onClick={()=>{onConfirm();onClose();}}>{confirmLabel}</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ─── EmptyState ─── */
+function EmptyState({icon, title, description, action}) {
+  return (
+    <div className="empty fade-up">
+      <div className="empty-icon">{icon||IC.book}</div>
+      <div>
+        <p style={{margin:'0 0 6px',fontSize:16,fontWeight:600,color:'var(--t1)'}}>{title}</p>
+        {description&&<p style={{margin:0,fontSize:13,color:'var(--t2)',lineHeight:1.6,maxWidth:'28ch',margin:'0 auto'}}>{description}</p>}
+      </div>
+      {action&&<div style={{marginTop:4}}>{action}</div>}
+    </div>
+  );
+}
+
+/* ─── BookCard ─── */
+function BookCard({book, highlightCount, onClick}) {
+  const [hov,setHov]=useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={()=>setHov(true)}
+      onMouseLeave={()=>setHov(false)}
+      style={{
+        border:'none',background:'none',padding:0,cursor:'pointer',textAlign:'left',width:'100%',
+        transform:hov?'translateY(-3px)':'translateY(0)',
+        transition:'transform var(--tr)',
+      }}
+    >
+      <div className="card" style={{overflow:'hidden',boxShadow:hov?'0 8px 24px rgba(26,22,21,0.12)':'0 2px 12px rgba(26,22,21,0.06)',transition:'box-shadow var(--tr)',borderLeft:`2px solid ${hov?'var(--ac)':'transparent'}`,}}>
+        {/* Cover */}
+        <div style={{width:'100%',aspectRatio:'2/3',overflow:'hidden',position:'relative',background:'var(--bg2)'}}>
+          {book.coverPhoto
+            ? <img src={book.coverPhoto} alt={book.title} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/>
+            : <div className="cover-ph"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+          }
+          {book.language&&<span className="lang" style={{position:'absolute',top:8,right:8}}>{book.language.toUpperCase()}</span>}
+        </div>
+        {/* Info */}
+        <div style={{padding:'10px 12px 13px'}}>
+          <p style={{margin:'0 0 2px',fontSize:12,fontWeight:600,color:'var(--t1)',lineHeight:1.35}}>{truncate(book.title,32)}</p>
+          <p style={{margin:'0 0 7px',fontSize:11,color:'var(--t2)'}}>{truncate(book.author,26)}</p>
+          <div style={{display:'flex',alignItems:'center',gap:4,color:'var(--t3)'}}>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            <span style={{fontSize:10,fontWeight:500}}>{highlightCount||0} {(highlightCount||0)===1?'highlight':'highlights'}</span>
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ─── HighlightCard ─── */
+function HighlightCard({highlight, bookTitle, showBookTitle, onFavoriteToggle, onDelete, onTagAdd, onTagRemove, allTags=[], navigate}) {
+  const [showCtx,setShowCtx]=useState(false);
+  const [showTagInp,setShowTagInp]=useState(false);
+  const [tagInp,setTagInp]=useState('');
+  const dir=getDir(highlight.markedText);
+  const rtl=dir==='rtl';
+
+  const doAddTag=()=>{
+    const t=tagInp.trim();
+    if(t&&onTagAdd){onTagAdd(highlight.id,t);setTagInp('');setShowTagInp(false);}
+  };
+
+  return (
+    <div className={`hl-item ${rtl?'hl-rtl':'hl-ltr'} fade-up`}>
+      {/* Book title link */}
+      {showBookTitle&&bookTitle&&(
+        <button onClick={()=>navigate&&navigate('book-detail',{bookId:highlight.bookId})}
+          style={{background:'none',border:'none',padding:'0 0 5px',cursor:'pointer',fontSize:11,fontWeight:600,color:'var(--ac)',display:'block',textAlign:rtl?'right':'left'}}>
+          {bookTitle}
+        </button>
+      )}
+      {highlight.pageNumber&&<span style={{display:'block',fontSize:11,color:'var(--t3)',marginBottom:4,textAlign:rtl?'right':'left'}}>p.{highlight.pageNumber}</span>}
+
+      {/* Header row */}
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:8,flexDirection:rtl?'row-reverse':'row',marginBottom:8}}>
+        <div style={{position:'relative',flex:1}}>
+          <span style={{position:'absolute',top:-14,right:rtl?0:'auto',left:rtl?'auto':0,fontSize:52,lineHeight:1,color:'var(--ac)',opacity:0.15,fontFamily:"'Noto Serif Hebrew',serif",pointerEvents:'none',userSelect:'none'}}>"</span>
+          <p style={{margin:0,fontSize:16,fontWeight:500,color:'var(--t1)',lineHeight:1.75,textAlign:rtl?'right':'left',direction:dir,fontFamily:rtl?"'Noto Serif Hebrew',serif":undefined,paddingTop:4}}>
+            {highlight.markedText}
+          </p>
+        </div>
+        <button
+          onClick={()=>onFavoriteToggle&&onFavoriteToggle(highlight.id,!highlight.isFavorite)}
+          style={{background:'none',border:'none',padding:'3px',cursor:'pointer',color:highlight.isFavorite?'var(--gold)':'var(--t3)',flexShrink:0,display:'flex',alignItems:'center',borderRadius:6}}
+        >
+          {IC.star(highlight.isFavorite)}
+        </button>
+      </div>
+
+      {/* Context toggle */}
+      {highlight.fullContext&&highlight.fullContext!==highlight.markedText&&(
+        <div style={{marginBottom:8}}>
+          <button onClick={()=>setShowCtx(v=>!v)}
+            style={{background:'none',border:'none',padding:0,cursor:'pointer',fontSize:12,color:'var(--t2)',display:'flex',alignItems:'center',gap:4,flexDirection:rtl?'row-reverse':'row'}}>
+            <span style={{transform:showCtx?'rotate(180deg)':'none',transition:'transform 0.2s',display:'inline-block'}}>{IC.down}</span>
+            {showCtx?'Hide context':'Show context'}
+          </button>
+          {showCtx&&<p style={{margin:'8px 0 0',fontSize:12,color:'var(--t2)',lineHeight:1.65,padding:'10px 12px',background:'var(--bg2)',borderRadius:8,direction:dir,textAlign:rtl?'right':'left'}}>{highlight.fullContext}</p>}
+        </div>
+      )}
+
+      {/* Tags */}
+      <div style={{display:'flex',flexWrap:'wrap',gap:6,alignItems:'center',marginBottom:8,flexDirection:rtl?'row-reverse':'row'}}>
+        {(highlight.tags||[]).map(t=><TagPill key={t} tag={t} onRemove={onTagRemove?()=>onTagRemove(highlight.id,t):undefined}/>)}
+        {onTagAdd&&(showTagInp
+          ? <div style={{display:'flex',alignItems:'center',gap:4}}>
+              <input value={tagInp} onChange={e=>setTagInp(e.target.value)}
+                onKeyDown={e=>{if(e.key==='Enter')doAddTag();if(e.key==='Escape'){setShowTagInp(false);setTagInp('');}}}
+                onBlur={()=>{if(!tagInp.trim())setShowTagInp(false);}}
+                placeholder="tag" autoFocus list="tag-opts"
+                style={{border:'1.5px solid var(--ac)',borderRadius:20,padding:'3px 10px',fontSize:12,fontFamily:'Outfit,sans-serif',color:'var(--t1)',background:'var(--card)',outline:'none',width:90}}/>
+              <datalist id="tag-opts">{allTags.map(t=><option key={t} value={t}/>)}</datalist>
+              <button onClick={doAddTag} style={{background:'var(--ac)',border:'none',borderRadius:'50%',width:22,height:22,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'white',padding:0}}>{IC.check}</button>
+            </div>
+          : <button onClick={()=>setShowTagInp(true)} className="tag" style={{background:'none',border:'1px dashed var(--bd)',cursor:'pointer',color:'var(--t3)'}}>
+              {IC.plus} tag
+            </button>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexDirection:rtl?'row-reverse':'row'}}>
+        <span style={{fontSize:11,color:'var(--t3)'}}>{fmtDate(highlight.dateAdded)}{highlight.isEdited&&' · edited'}</span>
+        {onDelete&&<button onClick={()=>onDelete(highlight.id)}
+          style={{background:'none',border:'none',padding:'3px 7px',cursor:'pointer',fontSize:11,color:'var(--t3)',display:'flex',alignItems:'center',gap:3,borderRadius:6}}
+          onMouseEnter={e=>e.currentTarget.style.color='var(--err)'}
+          onMouseLeave={e=>e.currentTarget.style.color='var(--t3)'}>
+          {IC.trash} Delete
+        </button>}
+      </div>
+    </div>
+  );
+}
+
+/* ─── BottomNav ─── */
+function BottomNav({activeTab, navigate}) {
+  const tabs=[
+    {id:'library',label:'Library',icon:(a)=><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a?2.2:1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>},
+    {id:'highlights',label:'Highlights',icon:(a)=><svg width="21" height="21" viewBox="0 0 24 24" fill={a?'currentColor':'none'} stroke="currentColor" strokeWidth={a?2:1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>},
+    {id:'settings',label:'Settings',icon:(a)=><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a?2.2:1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>},
+  ];
+  return (
+    <nav className="bottom-nav">
+      <div style={{display:'flex',height:64}}>
+        {tabs.map(tab=>{
+          const a=activeTab===tab.id;
+          return (
+            <button key={tab.id} onClick={()=>navigate(tab.id)}
+              style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4,border:'none',background:'none',cursor:'pointer',color:a?'var(--ac)':'var(--t3)',transition:'color var(--tr)',padding:'6px 0'}}>
+              <div style={{transform:a?'scale(1.05)':'scale(1)',transition:'transform var(--tr)'}}>{tab.icon(a)}</div>
+              <span style={{fontSize:10,fontFamily:'Outfit,sans-serif',fontWeight:a?600:400,letterSpacing:'0.02em'}}>{tab.label}</span>
+              {a&&<div style={{position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 4px)',width:4,height:4,borderRadius:2,background:'var(--ac)'}}/>}
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+/* ─── LibraryPage ─── */
+function LibraryPage({navigate}) {
+  const [books,setBooks]=useState([]);
+  const [highlights,setHighlights]=useState([]);
+  const [q,setQ]=useState('');
+  const [sort,setSort]=useState('dateAdded');
+
+  const load=useCallback(()=>{const s=gs();setBooks(s.books||[]);setHighlights(s.highlights||[]);},[]);
+  useEffect(()=>{load();const h=()=>load();window.addEventListener('focus',h);return()=>window.removeEventListener('focus',h);},[load]);
+  useEffect(()=>{const h=()=>{if(!document.hidden)load();};document.addEventListener('visibilitychange',h);return()=>document.removeEventListener('visibilitychange',h);},[load]);
+
+  const hc=(id)=>highlights.filter(h=>h.bookId===id).length;
+  const filtered=sortBooks(books.filter(b=>{if(!q.trim())return true;const lo=q.toLowerCase();return b.title?.toLowerCase().includes(lo)||b.author?.toLowerCase().includes(lo)||(b.tags||[]).some(t=>t.toLowerCase().includes(lo));}),sort);
+
+  return (
+    <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
+      {/* Sticky header */}
+      <div style={{position:'sticky',top:0,zIndex:10,background:'var(--bg)',paddingTop:'calc(18px + env(safe-area-inset-top,0px))'}}>
+        <div style={{padding:'0 20px 14px'}}>
+          {/* Title row — asymmetric left-anchor */}
+          <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',marginBottom:14}}>
+            <div>
+              <h1 style={{margin:0,fontSize:28,fontWeight:700,color:'var(--t1)',letterSpacing:'-0.03em',lineHeight:1.1}}>My Library</h1>
+              <p style={{margin:'3px 0 0',fontSize:12,color:'var(--t3)',fontWeight:400}}>{books.length} {books.length===1?'book':'books'}</p>
+            </div>
+            <button className="btn btn-p" style={{padding:'0 16px',height:40,fontSize:13}} onClick={()=>navigate('add-book')}>
+              {IC.plus} Add
+            </button>
+          </div>
+          {/* Search + sort row */}
+          <div style={{display:'flex',gap:8}}>
+            <div style={{flex:1,position:'relative'}}>
+              <span style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',color:'var(--t3)',pointerEvents:'none',display:'flex'}}>{IC.search}</span>
+              <input type="search" className="inp" placeholder="Search books…" value={q} onChange={e=>setQ(e.target.value)} style={{paddingLeft:36,height:40}}/>
+            </div>
+            <select className="inp" value={sort} onChange={e=>setSort(e.target.value)} style={{width:'auto',height:40,flexShrink:0,paddingRight:24,fontSize:13}}>
+              <option value="dateAdded">Newest</option>
+              <option value="title">Title A–Z</option>
+              <option value="author">Author</option>
+            </select>
+          </div>
+        </div>
+        <div style={{height:1,background:'var(--bd)',margin:'0'}}/>
+      </div>
+
+      {/* Content */}
+      <div style={{padding:'18px 20px 20px'}} className="pb-nav">
+        {filtered.length===0?(
+          q ? <EmptyState icon={IC.search} title="No results" description={`Nothing matched "${q}"`}/>
+            : <EmptyState
+                icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>}
+                title="Your library is empty"
+                description="Add your first book to start collecting highlights."
+                action={<button className="btn btn-p" onClick={()=>navigate('add-book')}>{IC.plus} Add First Book</button>}
+              />
+        ) : (
+          <div className="books-grid stagger">
+            {filtered.map(b=><BookCard key={b.id} book={b} highlightCount={hc(b.id)} onClick={()=>navigate('book-detail',{bookId:b.id})}/>)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── AllHighlightsPage ─── */
+function AllHighlightsPage({navigate}) {
+  const [highlights,setHighlights]=useState([]);
+  const [books,setBooks]=useState([]);
+  const [allTags,setAllTags]=useState([]);
+  const [q,setQ]=useState('');
+  const [favOnly,setFavOnly]=useState(false);
+  const [filterTag,setFilterTag]=useState(null);
+  const [filterBook,setFilterBook]=useState(null);
+  const [showFilters,setShowFilters]=useState(false);
+
+  const load=useCallback(()=>{const s=gs();setHighlights(s.highlights||[]);setBooks(s.books||[]);setAllTags(getAllTags());},[]);
+  useEffect(()=>{load();},[load]);
+  useEffect(()=>{const h=()=>{if(!document.hidden)load();};document.addEventListener('visibilitychange',h);return()=>document.removeEventListener('visibilitychange',h);},[load]);
+
+  const bookTitle=(id)=>books.find(b=>b.id===id)?.title||'Unknown';
+
+  const filtered=([...highlights].sort((a,b)=>new Date(b.dateAdded)-new Date(a.dateAdded))).filter(h=>{
+    if(favOnly&&!h.isFavorite)return false;
+    if(filterTag&&!(h.tags||[]).includes(filterTag))return false;
+    if(filterBook&&h.bookId!==filterBook)return false;
+    if(q.trim()){const lo=q.toLowerCase();return h.markedText?.toLowerCase().includes(lo)||(h.tags||[]).some(t=>t.toLowerCase().includes(lo))||bookTitle(h.bookId).toLowerCase().includes(lo);}
+    return true;
+  });
+
+  const activeFilters=[favOnly,filterTag,filterBook].filter(Boolean).length;
+
+  const doFavTog=(id,v)=>{updateHighlight(id,{isFavorite:v});setHighlights(p=>p.map(h=>h.id===id?{...h,isFavorite:v}:h));};
+  const doDel=(id)=>{delHighlight(id);setHighlights(p=>p.filter(h=>h.id!==id));};
+  const doTagAdd=(hid,t)=>{const h=highlights.find(x=>x.id===hid);if(!h)return;const nt=[...new Set([...(h.tags||[]),t])];updateHighlight(hid,{tags:nt});setHighlights(p=>p.map(x=>x.id===hid?{...x,tags:nt}:x));addTag(t);setAllTags(getAllTags());};
+  const doTagRm=(hid,t)=>{const h=highlights.find(x=>x.id===hid);if(!h)return;const nt=(h.tags||[]).filter(x=>x!==t);updateHighlight(hid,{tags:nt});setHighlights(p=>p.map(x=>x.id===hid?{...x,tags:nt}:x));};
+
+  return (
+    <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
+      <div style={{position:'sticky',top:0,zIndex:10,background:'var(--bg)',paddingTop:'calc(18px + env(safe-area-inset-top,0px))'}}>
+        <div style={{padding:'0 20px 14px'}}>
+          <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',marginBottom:14}}>
+            <div>
+              <h1 style={{margin:0,fontSize:28,fontWeight:700,color:'var(--t1)',letterSpacing:'-0.03em',lineHeight:1.1}}>Highlights</h1>
+              <p style={{margin:'3px 0 0',fontSize:12,color:'var(--t3)'}}>{filtered.length} of {highlights.length}</p>
+            </div>
+            <button
+              onClick={()=>setShowFilters(v=>!v)}
+              style={{background:activeFilters>0?'var(--ac)':'var(--bg2)',border:`1px solid ${activeFilters>0?'var(--ac)':'var(--bd)'}`,borderRadius:10,padding:'0 14px',height:40,fontSize:13,fontFamily:'Outfit,sans-serif',fontWeight:500,cursor:'pointer',display:'flex',alignItems:'center',gap:6,color:activeFilters>0?'#fff':'var(--t2)',transition:'all var(--tr)'}}
+            >
+              {IC.filter} Filter
+              {activeFilters>0&&<span style={{background:'white',color:'var(--ac)',borderRadius:'50%',width:18,height:18,display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700}}>{activeFilters}</span>}
+            </button>
+          </div>
+          <div style={{position:'relative'}}>
+            <span style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',color:'var(--t3)',pointerEvents:'none',display:'flex'}}>{IC.search}</span>
+            <input type="search" className="inp" placeholder="Search highlights…" value={q} onChange={e=>setQ(e.target.value)} style={{paddingLeft:36,height:40}}/>
+          </div>
+
+          {showFilters&&(
+            <div className="card fade-up" style={{marginTop:12,padding:'16px',borderRadius:12}}>
+              {/* Favorites */}
+              <label style={{display:'flex',alignItems:'center',gap:10,cursor:'pointer',marginBottom:14}}>
+                <div onClick={()=>setFavOnly(v=>!v)} style={{width:20,height:20,borderRadius:5,border:`2px solid ${favOnly?'var(--gold)':'var(--bd)'}`,background:favOnly?'var(--gold)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'all var(--tr)'}}>
+                  {favOnly&&<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                </div>
+                <span style={{fontSize:13,color:'var(--t1)',display:'flex',alignItems:'center',gap:5}}>{IC.star(true)} Favorites only</span>
+              </label>
+              {allTags.length>0&&(
+                <div style={{marginBottom:14}}>
+                  <p className="section-label" style={{margin:'0 0 8px'}}>By Tag</p>
+                  <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                    {allTags.map(t=><TagPill key={t} tag={t} active={filterTag===t} onClick={()=>setFilterTag(filterTag===t?null:t)}/>)}
+                  </div>
+                </div>
+              )}
+              {books.length>0&&(
+                <div>
+                  <p className="section-label" style={{margin:'0 0 8px'}}>By Book</p>
+                  <select className="inp" value={filterBook||''} onChange={e=>setFilterBook(e.target.value||null)} style={{fontSize:13,height:40}}>
+                    <option value="">All books</option>
+                    {books.map(b=><option key={b.id} value={b.id}>{b.title}</option>)}
+                  </select>
+                </div>
+              )}
+              {activeFilters>0&&<button onClick={()=>{setFavOnly(false);setFilterTag(null);setFilterBook(null);}} style={{background:'none',border:'none',cursor:'pointer',fontSize:12,color:'var(--err)',padding:'10px 0 0',display:'block'}}>Clear all filters</button>}
+            </div>
+          )}
+        </div>
+        <div style={{height:1,background:'var(--bd)'}}/>
+      </div>
+
+      <div style={{padding:'4px 20px 20px'}} className="pb-nav">
+        {highlights.length===0
+          ? <EmptyState icon={IC.bookmark} title="No highlights yet" description="Add books and photograph marked pages to start collecting." action={<button className="btn btn-p" onClick={()=>navigate('library')}>Go to Library</button>}/>
+          : filtered.length===0
+            ? <EmptyState icon={IC.search} title="No matches" description="Try adjusting your search or filters." action={<button className="btn btn-s" onClick={()=>{setQ('');setFavOnly(false);setFilterTag(null);setFilterBook(null);}}>Clear</button>}/>
+            : filtered.map(h=><HighlightCard key={h.id} highlight={h} bookTitle={bookTitle(h.bookId)} showBookTitle allTags={allTags} navigate={navigate} onFavoriteToggle={doFavTog} onDelete={doDel} onTagAdd={doTagAdd} onTagRemove={doTagRm}/>)
+        }
+      </div>
+    </div>
+  );
+}
+
+/* ─── BookDetailPage ─── */
+function BookDetailPage({navigate, bookId}) {
+  const [book,setBook]=useState(null);
+  const [highlights,setHighlights]=useState([]);
+  const [allTags,setAllTags]=useState([]);
+  const [showDel,setShowDel]=useState(false);
+  const [q,setQ]=useState('');
+
+  const load=useCallback(()=>{const b=getBook(bookId);if(!b){navigate('library');return;}setBook(b);setHighlights(getHighlights(bookId));setAllTags(getAllTags());},[bookId,navigate]);
+  useEffect(()=>{load();},[load]);
+
+  if(!book)return null;
+
+  const favCount=highlights.filter(h=>h.isFavorite).length;
+  const filtered=highlights.filter(h=>{if(!q.trim())return true;const lo=q.toLowerCase();return h.markedText?.toLowerCase().includes(lo)||(h.tags||[]).some(t=>t.toLowerCase().includes(lo));}).sort((a,b)=>new Date(b.dateAdded)-new Date(a.dateAdded));
+
+  const doFavTog=(id,v)=>{updateHighlight(id,{isFavorite:v});setHighlights(p=>p.map(h=>h.id===id?{...h,isFavorite:v}:h));};
+  const doDel=(id)=>{delHighlight(id);setHighlights(p=>p.filter(h=>h.id!==id));};
+  const doTagAdd=(hid,t)=>{const h=highlights.find(x=>x.id===hid);if(!h)return;const nt=[...new Set([...(h.tags||[]),t])];updateHighlight(hid,{tags:nt});setHighlights(p=>p.map(x=>x.id===hid?{...x,tags:nt}:x));addTag(t);setAllTags(getAllTags());};
+  const doTagRm=(hid,t)=>{const h=highlights.find(x=>x.id===hid);if(!h)return;const nt=(h.tags||[]).filter(x=>x!==t);updateHighlight(hid,{tags:nt});setHighlights(p=>p.map(x=>x.id===hid?{...x,tags:nt}:x));};
+
+  return (
+    <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
+      {/* Header */}
+      <div style={{position:'sticky',top:0,zIndex:10,background:'var(--bg)',borderBottom:'1px solid var(--bd)',padding:'calc(14px + env(safe-area-inset-top,0px)) 20px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <button className="back-btn" onClick={()=>navigate('library')}>{IC.back} Library</button>
+        <button onClick={()=>setShowDel(true)} style={{background:'none',border:'none',cursor:'pointer',color:'var(--t3)',padding:8,display:'flex',alignItems:'center',borderRadius:8}} onMouseEnter={e=>e.currentTarget.style.color='var(--err)'} onMouseLeave={e=>e.currentTarget.style.color='var(--t3)'}>{IC.trash}</button>
+      </div>
+
+      {/* Book hero — split layout */}
+      <div style={{display:'flex',gap:18,padding:'22px 20px 18px',background:'var(--card)',borderBottom:'1px solid var(--bd)'}}>
+        <div style={{width:72,flexShrink:0,aspectRatio:'2/3',borderRadius:8,overflow:'hidden',background:'var(--bg2)',boxShadow:'0 6px 20px rgba(26,22,21,0.15)'}}>
+          {book.coverPhoto ? <img src={book.coverPhoto} alt={book.title} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/> : <div className="cover-ph" style={{height:'100%'}}>{IC.book}</div>}
+        </div>
+        <div style={{flex:1,minWidth:0}}>
+          <h1 style={{margin:'0 0 4px',fontSize:19,fontWeight:700,color:'var(--t1)',lineHeight:1.25,letterSpacing:'-0.02em'}}>{book.title}</h1>
+          <p style={{margin:'0 0 10px',fontSize:13,color:'var(--t2)'}}>{book.author}</p>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+            <span className="lang">{(book.language||'en').toUpperCase()}</span>
+            <span style={{fontSize:12,color:'var(--t3)'}}>{highlights.length} {highlights.length===1?'highlight':'highlights'}</span>
+            {favCount>0&&<span style={{fontSize:12,color:'var(--gold)',display:'flex',alignItems:'center',gap:3}}>{IC.star(true)}{favCount}</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* Action bar */}
+      <div style={{padding:'14px 20px',borderBottom:'1px solid var(--bd)'}}>
+        <button className="btn btn-p btn-w btn-lg" onClick={()=>navigate('add-highlights',{bookId:book.id})}>
+          {IC.photo} Add Highlights via Photo
+        </button>
+      </div>
+
+      {/* Search highlights */}
+      {highlights.length>0&&(
+        <div style={{padding:'14px 20px 0',position:'relative'}}>
+          <span style={{position:'absolute',left:32,top:'50%',transform:'translateY(-50%)',color:'var(--t3)',pointerEvents:'none',display:'flex'}}>{IC.search}</span>
+          <input type="search" className="inp" placeholder="Search highlights…" value={q} onChange={e=>setQ(e.target.value)} style={{paddingLeft:36,height:40}}/>
+        </div>
+      )}
+
+      {/* Highlights */}
+      <div style={{padding:'6px 20px 20px'}} className="pb-nav">
+        {filtered.length===0?(
+          q ? <EmptyState title="No results" description={`No highlights match "${q}"`}/>
+            : <EmptyState icon={IC.bookmark} title="No highlights yet" description="Photograph book pages with underlined text to extract highlights." action={<button className="btn btn-p" onClick={()=>navigate('add-highlights',{bookId:book.id})}>Add Highlights</button>}/>
+        ) : filtered.map(h=><HighlightCard key={h.id} highlight={h} allTags={allTags} onFavoriteToggle={doFavTog} onDelete={doDel} onTagAdd={doTagAdd} onTagRemove={doTagRm} navigate={navigate}/>)}
+      </div>
+
+      <ConfirmModal isOpen={showDel} onClose={()=>setShowDel(false)} onConfirm={()=>{deleteBook(bookId);navigate('library');}} title="Delete Book" message={`Delete "${book.title}" and all ${highlights.length} highlight(s)? This cannot be undone.`} confirmLabel="Delete Book" danger/>
+    </div>
+  );
+}
+
+/* ─── AddBookPage ─── */
+function AddBookPage({navigate}) {
+  const [title,setTitle]=useState('');
+  const [author,setAuthor]=useState('');
+  const [lang,setLang]=useState(()=>getSettings().defaultLanguage||'en');
+  const [cover,setCover]=useState(null);
+  const [errs,setErrs]=useState({});
+  const [saving,setSaving]=useState(false);
+
+  const handleCover=async(e)=>{
+    const f=e.target.files?.[0]; if(!f)return;
+    try{const b=await fileToB64(f);const c=await compressImg(b,600,0.8);setCover(c);setErrs(p=>({...p,cover:null}));}
+    catch(e){setErrs(p=>({...p,cover:'Failed to process image'}));}
+  };
+
+  const validate=()=>{const e={};if(!title.trim())e.title='Title is required';if(!author.trim())e.author='Author is required';if(!cover)e.cover='Cover photo is required';setErrs(e);return!Object.keys(e).length;};
+
+  const submit=async(e)=>{
+    e.preventDefault();if(!validate())return;
+    setSaving(true);
+    try{const b=addBook({id:genId(),title:title.trim(),author:author.trim(),coverPhoto:cover,language:lang,tags:[],highlights:[],dateAdded:new Date().toISOString()});navigate('book-detail',{bookId:b.id});}
+    catch(err){setErrs({submit:err.message});}
+    finally{setSaving(false);}
+  };
+
+  return (
+    <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
+      <div style={{position:'sticky',top:0,zIndex:10,background:'var(--bg)',borderBottom:'1px solid var(--bd)',padding:'calc(14px + env(safe-area-inset-top,0px)) 20px 14px',display:'flex',alignItems:'center',gap:12}}>
+        <button className="back-btn" onClick={()=>navigate('library')}>{IC.back} Cancel</button>
+        <h1 style={{flex:1,margin:0,fontSize:16,fontWeight:600,color:'var(--t1)',textAlign:'center',letterSpacing:'-0.01em'}}>New Book</h1>
+        <div style={{width:70}}/>
+      </div>
+
+      <form onSubmit={submit} style={{padding:'24px 20px'}} className="pb-nav">
+        {/* Cover */}
+        <div style={{marginBottom:22}}>
+          <p className="section-label">Cover Photo <span style={{color:'var(--err)'}}>*</span></p>
+          <label htmlFor="cover-in" className="drop-zone" style={{flexDirection:cover?'row':'column',padding:cover?14:32,justifyContent:cover?'flex-start':'center',borderColor:errs.cover?'var(--err)':undefined}}>
+            {cover ? (
+              <>
+                <div style={{width:64,height:92,borderRadius:6,overflow:'hidden',flexShrink:0,boxShadow:'0 3px 12px rgba(26,22,21,0.15)'}}>
+                  <img src={cover} alt="Cover" style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/>
+                </div>
+                <div style={{marginLeft:14}}>
+                  <p style={{margin:'0 0 3px',fontSize:14,fontWeight:500,color:'var(--ac)'}}>Change cover</p>
+                  <p style={{margin:0,fontSize:12,color:'var(--t3)'}}>Tap to select a different image</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{width:48,height:48,borderRadius:'50%',background:'var(--bg2)',display:'flex',alignItems:'center',justifyContent:'center'}}>{IC.photo}</div>
+                <div style={{textAlign:'center'}}>
+                  <p style={{margin:'0 0 2px',fontSize:14,fontWeight:500,color:'var(--ac)'}}>Upload cover photo</p>
+                  <p style={{margin:0,fontSize:12,color:'var(--t3)'}}>JPEG, PNG, WebP</p>
+                </div>
+              </>
+            )}
+          </label>
+          <input id="cover-in" type="file" accept="image/*" onChange={handleCover} style={{display:'none'}}/>
+          {errs.cover&&<p style={{margin:'6px 0 0',fontSize:12,color:'var(--err)'}}>{errs.cover}</p>}
+        </div>
+
+        {/* Title */}
+        <div style={{marginBottom:18}}>
+          <label htmlFor="ttl" className="section-label" style={{display:'block',marginBottom:7}}>Title <span style={{color:'var(--err)'}}>*</span></label>
+          <input id="ttl" type="text" className="inp" placeholder="Book title" value={title} onChange={e=>{setTitle(e.target.value);setErrs(p=>({...p,title:null}));}} style={{borderColor:errs.title?'var(--err)':undefined}}/>
+          {errs.title&&<p style={{margin:'6px 0 0',fontSize:12,color:'var(--err)'}}>{errs.title}</p>}
+        </div>
+
+        {/* Author */}
+        <div style={{marginBottom:18}}>
+          <label htmlFor="aut" className="section-label" style={{display:'block',marginBottom:7}}>Author <span style={{color:'var(--err)'}}>*</span></label>
+          <input id="aut" type="text" className="inp" placeholder="Author name" value={author} onChange={e=>{setAuthor(e.target.value);setErrs(p=>({...p,author:null}));}} style={{borderColor:errs.author?'var(--err)':undefined}}/>
+          {errs.author&&<p style={{margin:'6px 0 0',fontSize:12,color:'var(--err)'}}>{errs.author}</p>}
+        </div>
+
+        {/* Language */}
+        <div style={{marginBottom:28}}>
+          <p className="section-label" style={{marginBottom:8}}>Language</p>
+          <div className="seg">
+            {[{v:'en',l:'English'},{v:'he',l:'Hebrew'}].map(o=>(
+              <button key={o.v} type="button" className={`seg-btn${lang===o.v?' active':''}`} onClick={()=>setLang(o.v)}>{o.l}</button>
+            ))}
+          </div>
+        </div>
+
+        {errs.submit&&<div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:10,padding:'12px 14px',marginBottom:16,fontSize:13,color:'var(--err)'}}>{errs.submit}</div>}
+
+        <button type="submit" className="btn btn-p btn-w btn-lg" disabled={saving}>
+          {saving?<><Spin/> Adding Book…</>:'Add Book to Library'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+/* ─── AddHighlightsPage ─── */
+function AddHighlightsPage({navigate, bookId}) {
+  const [photos,setPhotos]=useState([]);
+  const [processing,setProcessing]=useState(false);
+  const book=getBook(bookId);
+  if(!book){navigate('library');return null;}
+
+  const handleFiles=async(files)=>{
+    const arr=Array.from(files);
+    const nph=await Promise.all(arr.map(async f=>{const b=await fileToB64(f);return{id:genId(),file:f,preview:b,status:'pending',result:null,error:null};}));
+    setPhotos(p=>[...p,...nph]);
+  };
+
+  const analyze=async(photo)=>{
+    const k=getApiKey();
+    if(!k||!k.trim())throw new Error('No API key set. Add your Gemini key in Settings.');
+    const lang=book.language||'en';
+    const c=await compressImg(photo.preview,1200,0.85);
+    const b64=c.replace(/^data:image\/[a-z]+;base64,/,'');
+    const body={contents:[{parts:[{inline_data:{mime_type:'image/jpeg',data:b64}},{text:buildPrompt(lang)}]}],generationConfig:{temperature:0.1,maxOutputTokens:8192}};
+    let lastErr=null;
+    for(const model of GM_MODELS){
+      console.log('[MyBooksApp] Trying model:',model,'| language:',lang,'| key prefix:',k.slice(0,5)+'…');
+      let r;
+      try{r=await fetch(gemUrl(model,k),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}
+      catch(netErr){
+        console.error('[MyBooksApp] Network error:',netErr);
+        console.log('Current API Key being used (first 5 chars):',k.substring(0,5));
+        throw new Error(`Network error: ${netErr.message}`);
+      }
+      if(!r.ok){
+        const e=await r.json().catch(()=>({}));
+        console.error(`[MyBooksApp] Model ${model} error:`,JSON.stringify(e,null,2));
+        console.log('Current API Key being used (first 5 chars):',k.substring(0,5));
+        const msg=e.error?.message||`HTTP ${r.status}`;
+        if(r.status===404){lastErr=new Error(`Model not found (404): ${model} — ${msg}`);console.warn('[MyBooksApp]',model,'not found, trying next...');continue;}
+        // limit:0 means free-tier quota is zero for this model/region — try next model
+        if(r.status===429&&msg.includes('limit: 0')){lastErr=new Error(`Free tier unavailable (429): ${model} — ${msg}`);console.warn('[MyBooksApp]',model,'has limit:0 on free tier, trying next...');continue;}
+        if(r.status===429)throw new Error(`Quota/rate limit (429): ${msg}`);
+        throw new Error(`API error ${r.status}: ${msg}`);
+      }
+      const d=await r.json();
+      console.log('[MyBooksApp] Success with model:',model,'| candidates:',d.candidates?.length??0);
+      const txt=d.candidates?.[0]?.content?.parts?.[0]?.text||'{"highlights":[]}';
+      const m=txt.match(/\{[\s\S]*\}/);
+      if(!m){console.warn('[MyBooksApp] No JSON in response:',txt);return{highlights:[]};}
+      return JSON.parse(m[0]);
+    }
+    console.log('Current API Key being used (first 5 chars):',k.substring(0,5));
+    throw lastErr||new Error('All Gemini model variants failed.');
+  };
+
+  const processAll=async()=>{
+    const pend=photos.filter(p=>p.status==='pending');
+    if(!pend.length)return;
+    setProcessing(true);
+    for(const ph of pend){
+      setPhotos(p=>p.map(x=>x.id===ph.id?{...x,status:'processing'}:x));
+      try{const res=await analyze(ph);setPhotos(p=>p.map(x=>x.id===ph.id?{...x,status:'done',result:res}:x));}
+      catch(e){setPhotos(p=>p.map(x=>x.id===ph.id?{...x,status:'error',error:e.message}:x));}
+    }
+    setProcessing(false);
+  };
+
+  const retry=async(photo)=>{
+    setPhotos(p=>p.map(x=>x.id===photo.id?{...x,status:'processing',error:null}:x));
+    try{const r=await analyze(photo);setPhotos(p=>p.map(x=>x.id===photo.id?{...x,status:'done',result:r}:x));}
+    catch(e){setPhotos(p=>p.map(x=>x.id===photo.id?{...x,status:'error',error:e.message}:x));}
+  };
+
+  const doneCount=photos.filter(p=>p.status==='done').length;
+  const pendingCount=photos.filter(p=>p.status==='pending').length;
+  const procCount=photos.filter(p=>p.status==='processing').length;
+  const totalHL=photos.filter(p=>p.status==='done').reduce((s,p)=>s+(p.result?.highlights?.length||0),0);
+  const allDone=photos.length>0&&pendingCount===0&&procCount===0;
+
+  const goContinue=()=>{
+    const pend=[];
+    photos.forEach(ph=>{if(ph.status==='done'&&ph.result?.highlights){ph.result.highlights.forEach(h=>{pend.push({id:genId(),bookId,markedText:h.markedText||'',fullContext:h.fullContext||'',pageNumber:h.pageNumber||null,photoOriginal:ph.preview,isFavorite:false,tags:[],dateAdded:new Date().toISOString(),isEdited:false});});}});
+    navigate('review-highlights',{bookId,pendingHighlights:pend});
+  };
+
+  return (
+    <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
+      <div style={{position:'sticky',top:0,zIndex:10,background:'var(--bg)',borderBottom:'1px solid var(--bd)',padding:'calc(14px + env(safe-area-inset-top,0px)) 20px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <button className="back-btn" onClick={()=>navigate('book-detail',{bookId})}>{IC.back} Back</button>
+        <div style={{textAlign:'center'}}>
+          <h1 style={{margin:0,fontSize:16,fontWeight:600,color:'var(--t1)'}}>Add Highlights</h1>
+          <p style={{margin:0,fontSize:11,color:'var(--t3)'}}>{truncate(book.title,24)}</p>
+        </div>
+        <div style={{width:60}}/>
+      </div>
+
+      <div style={{padding:'20px'}} className="pb-nav">
+        {/* Instructions */}
+        <div className="card" style={{padding:'15px 16px',marginBottom:18,background:'rgba(194,101,26,0.04)',borderColor:'rgba(194,101,26,0.15)'}}>
+          <p style={{margin:'0 0 7px',fontSize:13,fontWeight:600,color:'var(--t1)'}}>How it works</p>
+          <ul style={{margin:0,paddingLeft:16,fontSize:12,color:'var(--t2)',lineHeight:1.75}}>
+            <li>Take photos of book pages with pencil lines in the right margin</li>
+            <li>AI will extract all marked passages automatically</li>
+            <li>Review and edit before saving to your library</li>
+          </ul>
+        </div>
+
+        {/* Upload buttons */}
+        <div style={{display:'flex',gap:10,marginBottom:18}}>
+          <label htmlFor="ph-file" className="btn btn-s" style={{flex:1,cursor:'pointer'}}>
+            {IC.photo} Choose Photos
+          </label>
+          <label htmlFor="ph-cam" className="btn btn-p" style={{flex:1,cursor:'pointer'}}>
+            {IC.cam} Take Photo
+          </label>
+        </div>
+        <input id="ph-file" type="file" accept="image/*" multiple onChange={e=>handleFiles(e.target.files)} style={{display:'none'}}/>
+        <input id="ph-cam" type="file" accept="image/*" capture="environment" onChange={e=>handleFiles(e.target.files)} style={{display:'none'}}/>
+
+        {/* Photo queue */}
+        {photos.length>0&&(
+          <div style={{marginBottom:18}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+              <p className="section-label" style={{margin:0}}>Queue ({photos.length})</p>
+              {doneCount>0&&<span style={{fontSize:12,color:'#22c55e',fontWeight:500}}>{totalHL} highlight{totalHL!==1?'s':''} found</span>}
+            </div>
+            <div className="photo-queue">
+              {photos.map(ph=>(
+                <div key={ph.id} className="photo-item">
+                  <img src={ph.preview} alt="page" style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/>
+                  {/* Status overlay */}
+                  <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:ph.status==='processing'?'rgba(26,22,21,0.55)':ph.status==='done'?'rgba(34,197,94,0.18)':ph.status==='error'?'rgba(184,50,50,0.55)':'transparent',transition:'background 0.3s'}}>
+                    {ph.status==='processing'&&<Spin/>}
+                    {ph.status==='done'&&<div style={{background:'#22c55e',borderRadius:'50%',width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center',color:'white'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg></div>}
+                    {ph.status==='error'&&<div style={{color:'white',textAlign:'center',padding:4}}>{IC.err}<span style={{display:'block',fontSize:9,marginTop:2}}>Error</span>{ph.error&&<span style={{display:'block',fontSize:8,marginTop:2,opacity:0.85,maxWidth:120,wordBreak:'break-word'}}>{ph.error}</span>}</div>}
+                  </div>
+                  {ph.status==='done'&&ph.result?.highlights?.length>0&&<div style={{position:'absolute',top:5,left:5,background:'var(--ac)',color:'white',borderRadius:9,padding:'2px 6px',fontSize:10,fontWeight:600}}>{ph.result.highlights.length}</div>}
+                  {(ph.status==='pending'||ph.status==='error')&&<button onClick={()=>setPhotos(p=>p.filter(x=>x.id!==ph.id))} style={{position:'absolute',top:4,right:4,background:'rgba(26,22,21,0.65)',border:'none',borderRadius:'50%',width:20,height:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'white',padding:0}}>{IC.x}</button>}
+                  {ph.status==='error'&&<button onClick={()=>retry(ph)} style={{position:'absolute',bottom:4,left:'50%',transform:'translateX(-50%)',background:'var(--ac)',border:'none',borderRadius:6,padding:'2px 8px',cursor:'pointer',color:'white',fontSize:9,fontWeight:500,whiteSpace:'nowrap'}}>Retry</button>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Action */}
+        {photos.length>0&&(
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {pendingCount>0&&!processing&&<button className="btn btn-p btn-w btn-lg" onClick={processAll}>{IC.play} Analyze {pendingCount} Photo{pendingCount!==1?'s':''} with AI</button>}
+            {processing&&<button className="btn btn-p btn-w btn-lg" disabled><Spin/> Analyzing…</button>}
+            {allDone&&totalHL>0&&<button className="btn btn-p btn-w btn-lg" onClick={goContinue}>Review {totalHL} Highlight{totalHL!==1?'s':''} {IC.next}</button>}
+            {allDone&&totalHL===0&&<div className="card" style={{padding:16,textAlign:'center'}}><p style={{margin:0,fontSize:13,color:'var(--t2)'}}>No marked text detected. Make sure photos show clear pencil lines in the right margin beside the text.</p></div>}
+          </div>
+        )}
+
+        {photos.length===0&&(
+          <div className="empty">
+            <div className="empty-icon" style={{width:72,height:72,borderRadius:22}}>{IC.cam}</div>
+            <p style={{margin:0,fontSize:14,color:'var(--t2)',lineHeight:1.6}}>Select photos of book pages to start extracting highlights</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── ReviewHighlightsPage ─── */
+function ReviewHighlightsPage({navigate, bookId, pendingHighlights}) {
+  const [items,setItems]=useState(()=>pendingHighlights.map(h=>({...h})));
+  const [saving,setSaving]=useState(false);
+  const [globalTags]=useState(getAllTags);
+  const book=getBook(bookId);
+
+  if(!book){navigate('library');return null;}
+  if(!pendingHighlights.length){navigate('book-detail',{bookId});return null;}
+
+  const upd=(id,field,val)=>setItems(p=>p.map(h=>h.id===id?{...h,[field]:val,isEdited:true}:h));
+  const remove=(id)=>setItems(p=>p.filter(h=>h.id!==id));
+  const tagAdd=(id,t)=>setItems(p=>p.map(h=>h.id===id?{...h,tags:[...new Set([...(h.tags||[]),t.trim()])].filter(Boolean)}:h));
+  const tagRm=(id,t)=>setItems(p=>p.map(h=>h.id===id?{...h,tags:(h.tags||[]).filter(x=>x!==t)}:h));
+  const favTog=(id)=>setItems(p=>p.map(h=>h.id===id?{...h,isFavorite:!h.isFavorite}:h));
+
+  const saveAll=async()=>{
+    if(!items.length){navigate('book-detail',{bookId});return;}
+    setSaving(true);
+    try{for(const h of items){if(h.markedText?.trim()){addHighlight(h);(h.tags||[]).forEach(t=>addTag(t));}}navigate('book-detail',{bookId});}
+    catch(e){console.error(e);}
+    finally{setSaving(false);}
+  };
+
+  return (
+    <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
+      <div style={{position:'sticky',top:0,zIndex:10,background:'var(--bg)',borderBottom:'1px solid var(--bd)',padding:'calc(14px + env(safe-area-inset-top,0px)) 20px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <button className="back-btn" onClick={()=>navigate('book-detail',{bookId})}>{IC.back} Discard</button>
+        <div style={{textAlign:'center'}}>
+          <h1 style={{margin:0,fontSize:16,fontWeight:600,color:'var(--t1)'}}>Review</h1>
+          <p style={{margin:0,fontSize:11,color:'var(--t3)'}}>{items.length} extracted</p>
+        </div>
+        <button className="btn btn-p" style={{padding:'0 14px',height:36,fontSize:13}} onClick={saveAll} disabled={saving}>
+          {saving?<Spin/>:'Save All'}
+        </button>
+      </div>
+
+      {/* Book bar */}
+      <div style={{padding:'10px 20px',background:'var(--card)',borderBottom:'1px solid var(--bd)',display:'flex',alignItems:'center',gap:10}}>
+        {book.coverPhoto&&<img src={book.coverPhoto} alt={book.title} style={{width:26,height:37,objectFit:'cover',borderRadius:3,flexShrink:0}}/>}
+        <div>
+          <p style={{margin:0,fontSize:13,fontWeight:600,color:'var(--t1)'}}>{book.title}</p>
+          <p style={{margin:0,fontSize:11,color:'var(--t3)'}}>by {book.author}</p>
+        </div>
+      </div>
+
+      <div style={{padding:'10px 20px 24px'}} className="pb-nav">
+        {items.length===0
+          ? <EmptyState title="All removed" description="No highlights remaining." action={<button className="btn btn-p" onClick={()=>navigate('book-detail',{bookId})}>Back to Book</button>}/>
+          : items.map((h,i)=><ReviewItem key={h.id} h={h} idx={i} globalTags={globalTags} onUpd={upd} onDel={remove} onTagAdd={tagAdd} onTagRm={tagRm} onFav={favTog}/>)
+        }
+      </div>
+
+      {items.length>0&&(
+        <div style={{position:'sticky',bottom:'calc(64px + env(safe-area-inset-bottom,0px))',padding:'16px 20px',background:'linear-gradient(to top, var(--bg) 75%, transparent)'}}>
+          <button className="btn btn-p btn-w btn-lg" onClick={saveAll} disabled={saving}>
+            {saving?<><Spin/> Saving…</>:<>Save {items.length} Highlight{items.length!==1?'s':''} {IC.check}</>}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReviewItem({h, idx, globalTags, onUpd, onDel, onTagAdd, onTagRm, onFav}) {
+  const [tagInp,setTagInp]=useState('');
+  const [showTagInp,setShowTagInp]=useState(false);
+  const [showPhoto,setShowPhoto]=useState(false);
+  const dir=getDir(h.markedText);
+  const rtl=dir==='rtl';
+
+  const doAddTag=()=>{const t=tagInp.trim();if(t){onTagAdd(h.id,t);setTagInp('');setShowTagInp(false);}};
+
+  return (
+    <div className="card fade-up" style={{marginBottom:14,padding:'16px',borderLeft:rtl?'none':`2.5px solid var(--ac)`,borderRight:rtl?'2.5px solid var(--ac)':'none',direction:dir}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12,flexDirection:rtl?'row-reverse':'row'}}>
+        <span className="section-label" style={{margin:0,color:'var(--ac)'}}>#{String(idx+1).padStart(2,'0')}</span>
+        <div style={{display:'flex',gap:4,flexDirection:rtl?'row-reverse':'row'}}>
+          <button onClick={()=>onFav(h.id)} style={{background:'none',border:'none',cursor:'pointer',color:h.isFavorite?'var(--gold)':'var(--t3)',padding:6,borderRadius:6,display:'flex',alignItems:'center'}}>
+            {IC.star(h.isFavorite)}
+          </button>
+          <button onClick={()=>onDel(h.id)} style={{background:'none',border:'none',cursor:'pointer',color:'var(--t3)',padding:6,borderRadius:6,display:'flex',alignItems:'center'}} onMouseEnter={e=>e.currentTarget.style.color='var(--err)'} onMouseLeave={e=>e.currentTarget.style.color='var(--t3)'}>
+            {IC.trash}
+          </button>
+        </div>
+      </div>
+
+      <label className="section-label" style={{display:'block',marginBottom:6,textAlign:rtl?'right':'left'}}>Marked Text</label>
+      <div style={{position:'relative'}}>
+        <span style={{position:'absolute',top:-10,right:rtl?2:'auto',left:rtl?'auto':2,fontSize:52,lineHeight:1,color:'var(--ac)',opacity:0.18,fontFamily:"'Noto Serif Hebrew',serif",pointerEvents:'none',userSelect:'none',zIndex:0}}>"</span>
+        <textarea value={h.markedText} onChange={e=>onUpd(h.id,'markedText',e.target.value)} className="inp" style={{position:'relative',zIndex:1,marginBottom:12,fontSize:15,fontWeight:500,minHeight:80,direction:dir,textAlign:rtl?'right':'left',fontFamily:rtl?"'Noto Serif Hebrew',serif":undefined,lineHeight:1.7}} placeholder="The underlined or bracketed text…"/>
+      </div>
+
+      <label className="section-label" style={{display:'block',marginBottom:6,textAlign:rtl?'right':'left'}}>Context Paragraph</label>
+      <textarea value={h.fullContext} onChange={e=>onUpd(h.id,'fullContext',e.target.value)} className="inp" style={{marginBottom:12,fontSize:12,color:'var(--t2)',minHeight:60,direction:dir,textAlign:rtl?'right':'left'}} placeholder="The surrounding paragraph…"/>
+
+      <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12,flexDirection:rtl?'row-reverse':'row'}}>
+        <label style={{fontSize:12,color:'var(--t2)',whiteSpace:'nowrap'}}>Page</label>
+        <input type="number" value={h.pageNumber||''} onChange={e=>onUpd(h.id,'pageNumber',e.target.value?parseInt(e.target.value):null)} className="inp" placeholder="—" style={{width:72,textAlign:'center',height:36,fontSize:13}}/>
+      </div>
+
+      <div style={{display:'flex',flexWrap:'wrap',gap:6,alignItems:'center',marginBottom:8,flexDirection:rtl?'row-reverse':'row'}}>
+        {(h.tags||[]).map(t=><TagPill key={t} tag={t} onRemove={()=>onTagRm(h.id,t)}/>)}
+        {showTagInp
+          ? <div style={{display:'flex',gap:4,alignItems:'center'}}>
+              <input value={tagInp} onChange={e=>setTagInp(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')doAddTag();if(e.key==='Escape'){setShowTagInp(false);setTagInp('');}}} onBlur={()=>{if(!tagInp.trim())setShowTagInp(false);}} placeholder="tag" autoFocus list={`rv-tags-${h.id}`} style={{border:'1.5px solid var(--ac)',borderRadius:20,padding:'3px 10px',fontSize:12,fontFamily:'Outfit,sans-serif',color:'var(--t1)',background:'var(--card)',outline:'none',width:90}}/>
+              <datalist id={`rv-tags-${h.id}`}>{globalTags.map(t=><option key={t} value={t}/>)}</datalist>
+              <button onClick={doAddTag} style={{background:'var(--ac)',border:'none',borderRadius:'50%',width:22,height:22,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'white',padding:0}}>{IC.check}</button>
+            </div>
+          : <button onClick={()=>setShowTagInp(true)} className="tag" style={{background:'none',border:'1px dashed var(--bd)',cursor:'pointer',color:'var(--t3)'}}>{IC.plus} add tag</button>
+        }
+      </div>
+
+      {h.photoOriginal&&(
+        <div>
+          <button onClick={()=>setShowPhoto(v=>!v)} style={{background:'none',border:'none',cursor:'pointer',fontSize:12,color:'var(--t2)',display:'flex',alignItems:'center',gap:4,padding:'4px 0',flexDirection:rtl?'row-reverse':'row'}}>
+            <span style={{transform:showPhoto?'rotate(180deg)':'none',transition:'transform 0.2s',display:'inline-block'}}>{IC.down}</span>
+            {showPhoto?'Hide':'Show'} source photo
+          </button>
+          {showPhoto&&<img src={h.photoOriginal} alt="Source" style={{width:'100%',display:'block',borderRadius:8,marginTop:8}}/>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── SettingsPage ─── */
+function SettingsPage({navigate}) {
+  const [tags,setTags]=useState(getAllTags);
+  const [settings,setSettings]=useState(getSettings);
+  const [sz,setSz]=useState(getStorageSize);
+  const [showClear,setShowClear]=useState(false);
+  const [newTag,setNewTag]=useState('');
+  const [renamingTag,setRenamingTag]=useState(null);
+  const [renameVal,setRenameVal]=useState('');
+  const [importErr,setImportErr]=useState(null);
+  const [importOk,setImportOk]=useState(false);
+  const [apiKey,setApiKey]=useState(getApiKey);
+  const [apiSaved,setApiSaved]=useState(false);
+  const [showKey,setShowKey]=useState(false);
+  const importRef=useRef(null);
+
+  const saveKey=()=>{saveApiKey(apiKey);setApiSaved(true);setTimeout(()=>setApiSaved(false),2500);};
+  const doExport=()=>{const j=exportData();const b=new Blob([j],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`bookmarks-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);};
+  const doImport=async(e)=>{const f=e.target.files?.[0];if(!f)return;setImportErr(null);setImportOk(false);const r=new FileReader();r.onload=ev=>{try{importData(ev.target.result);setImportOk(true);setTags(getAllTags());setSettings(getSettings());setSz(getStorageSize());setTimeout(()=>setImportOk(false),3000);}catch(er){setImportErr(er.message);}};r.readAsText(f);e.target.value='';};
+  const doClear=()=>{clearAllData();setTags([]);setSz(getStorageSize());};
+  const doAddTag=()=>{const t=newTag.trim();if(t){addTag(t);setTags(getAllTags());setNewTag('');}};
+  const doRename=()=>{if(!renamingTag||!renameVal.trim())return;renameTag(renamingTag,renameVal.trim());setTags(getAllTags());setRenamingTag(null);setRenameVal('');};
+  const doDelTag=(t)=>{deleteTag(t);setTags(getAllTags());};
+  const setSetting=(k,v)=>{const s=updateSettings({[k]:v});setSettings(s);};
+
+  const szPct=Math.min((sz/(5*1024*1024))*100,100);
+
+  return (
+    <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
+      <div style={{padding:'calc(20px + env(safe-area-inset-top,0px)) 20px 18px',borderBottom:'1px solid var(--bd)'}}>
+        <h1 style={{margin:0,fontSize:28,fontWeight:700,color:'var(--t1)',letterSpacing:'-0.03em'}}>Settings</h1>
+      </div>
+
+      <div style={{padding:'20px'}} className="pb-nav">
+
+        {/* Storage */}
+        <p className="section-label">Storage</p>
+        <div className="settings-card" style={{marginBottom:22}}>
+          <div className="settings-row" style={{flexDirection:'column',alignItems:'stretch',gap:8}}>
+            <div style={{display:'flex',justifyContent:'space-between'}}>
+              <span style={{fontSize:13,color:'var(--t2)'}}>Used</span>
+              <span style={{fontSize:13,fontWeight:600,color:'var(--t1)'}}>{fmtBytes(sz)} / ~5 MB</span>
+            </div>
+            <div className="progress-track">
+              <div className="progress-bar" style={{width:szPct+'%',background:szPct>80?'var(--err)':'var(--ac)'}}/>
+            </div>
+          </div>
+        </div>
+
+        {/* Preferences */}
+        <p className="section-label">Preferences</p>
+        <div className="settings-card" style={{marginBottom:22}}>
+          <div className="settings-row">
+            <span style={{fontSize:14,color:'var(--t1)'}}>Default Language</span>
+            <div className="seg" style={{width:'auto'}}>
+              {[{v:'en',l:'EN'},{v:'he',l:'HE'}].map(o=>(
+                <button key={o.v} type="button" className={`seg-btn${settings.defaultLanguage===o.v?' active':''}`} onClick={()=>setSetting('defaultLanguage',o.v)} style={{padding:'6px 14px'}}>{o.l}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* AI / API Key */}
+        <p className="section-label">AI — Gemini API Key</p>
+        <div className="settings-card" style={{marginBottom:22}}>
+          <div style={{padding:'14px 16px'}}>
+            <p style={{margin:'0 0 12px',fontSize:13,color:'var(--t2)',lineHeight:1.6}}>Stored only on this device. Used to extract highlighted text from photos.</p>
+            <div style={{display:'flex',gap:8,marginBottom:8}}>
+              <div style={{flex:1,position:'relative'}}>
+                <input type={showKey?'text':'password'} className="inp" placeholder="AIza…" value={apiKey} onChange={e=>setApiKey(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')saveKey();}} style={{paddingRight:40,fontSize:13,height:40}}/>
+                <button type="button" onClick={()=>setShowKey(v=>!v)} style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:'var(--t3)',padding:0,display:'flex',alignItems:'center'}}>
+                  {showKey?IC.eyeOff:IC.eye}
+                </button>
+              </div>
+              <button className="btn btn-p" style={{flexShrink:0,padding:'0 16px',height:40,fontSize:13}} onClick={saveKey}>
+                {apiSaved?<>{IC.check} Saved</>:'Save'}
+              </button>
+            </div>
+            {apiKey
+              ? <p style={{margin:0,fontSize:12,color:'#16a34a',display:'flex',alignItems:'center',gap:4}}>{IC.check} API key set</p>
+              : <p style={{margin:0,fontSize:12,color:'var(--t3)'}}>No key set — photos cannot be processed until you add one.</p>
+            }
+          </div>
+        </div>
+
+        {/* Tags */}
+        <p className="section-label">Tags</p>
+        <div className="settings-card" style={{marginBottom:22}}>
+          <div style={{padding:'14px 16px'}}>
+            <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:12}}>
+              {tags.length===0
+                ? <p style={{margin:0,fontSize:13,color:'var(--t3)'}}>No tags yet.</p>
+                : tags.map(t=>(
+                  <div key={t} style={{display:'flex',alignItems:'center',gap:4}}>
+                    {renamingTag===t
+                      ? <div style={{display:'flex',gap:4,alignItems:'center'}}>
+                          <input value={renameVal} onChange={e=>setRenameVal(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')doRename();if(e.key==='Escape'){setRenamingTag(null);setRenameVal('');}} } autoFocus style={{border:'1.5px solid var(--ac)',borderRadius:20,padding:'4px 10px',fontSize:12,fontFamily:'Outfit,sans-serif',color:'var(--t1)',background:'var(--card)',outline:'none',width:100}}/>
+                          <button onClick={doRename} style={{background:'var(--ac)',border:'none',borderRadius:'50%',width:24,height:24,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'white',padding:0}}>{IC.check}</button>
+                          <button onClick={()=>{setRenamingTag(null);setRenameVal('');}} style={{background:'var(--bg2)',border:'none',borderRadius:'50%',width:24,height:24,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--t2)',padding:0}}>{IC.x}</button>
+                        </div>
+                      : <div style={{display:'flex',gap:4,alignItems:'center'}}>
+                          <span className="tag">{t}</span>
+                          <button onClick={()=>{setRenamingTag(t);setRenameVal(t);}} style={{background:'none',border:'none',cursor:'pointer',color:'var(--t3)',padding:4,borderRadius:4,display:'flex',alignItems:'center'}}>{IC.edit}</button>
+                          <button onClick={()=>doDelTag(t)} style={{background:'none',border:'none',cursor:'pointer',color:'var(--t3)',padding:4,borderRadius:4,display:'flex',alignItems:'center'}} onMouseEnter={e=>e.currentTarget.style.color='var(--err)'} onMouseLeave={e=>e.currentTarget.style.color='var(--t3)'}>{IC.x}</button>
+                        </div>
+                    }
+                  </div>
+                ))
+              }
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              <input type="text" className="inp" placeholder="New tag…" value={newTag} onChange={e=>setNewTag(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')doAddTag();}} style={{fontSize:13,height:40}}/>
+              <button className="btn btn-s" onClick={doAddTag} style={{padding:'0 16px',height:40,flexShrink:0}}>Add</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Data */}
+        <p className="section-label">Data</p>
+        <div className="settings-card" style={{marginBottom:22}}>
+          <div style={{padding:'14px 16px',display:'flex',flexDirection:'column',gap:10}}>
+            {importErr&&<div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 12px',fontSize:13,color:'var(--err)'}}>{importErr}</div>}
+            {importOk&&<div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px',fontSize:13,color:'#16a34a'}}>Data imported successfully.</div>}
+            <button className="btn btn-s btn-w" onClick={doExport}>{IC.export} Export as JSON</button>
+            <label htmlFor="imp-in" className="btn btn-s btn-w" style={{cursor:'pointer'}}>{IC.import} Import from JSON</label>
+            <input id="imp-in" ref={importRef} type="file" accept=".json,application/json" onChange={doImport} style={{display:'none'}}/>
+            <button className="btn btn-d btn-w" onClick={()=>setShowClear(true)}>{IC.trash} Clear All Data</button>
+          </div>
+        </div>
+
+        {/* About */}
+        <p className="section-label">About</p>
+        <div className="settings-card">
+          <div style={{padding:'14px 16px',fontSize:13,color:'var(--t2)',lineHeight:1.65}}>
+            <p style={{margin:'0 0 6px'}}><strong style={{color:'var(--t1)',fontWeight:600}}>BookMarks</strong> — personal reading journal</p>
+            <p style={{margin:'0 0 6px'}}>Photograph book pages with underlined passages and let AI extract your highlights automatically.</p>
+            <p style={{margin:0,color:'var(--t3)'}}>All data stored locally on your device.</p>
+          </div>
+        </div>
+      </div>
+
+      <ConfirmModal isOpen={showClear} onClose={()=>setShowClear(false)} onConfirm={doClear} title="Clear All Data" message="This will permanently delete all books, highlights, and settings. Consider exporting first." confirmLabel="Clear Everything" danger/>
+    </div>
+  );
+}
+
+/* ─── App ─── */
+const TAB_PAGES=['library','highlights','settings'];
+
+function App() {
+  const [page,setPage]=useState('library');
+  const [params,setParams]=useState({});
+  const [tab,setTab]=useState('library');
+
+  const navigate=useCallback((p,prms={})=>{
+    setPage(p);setParams(prms);
+    if(TAB_PAGES.includes(p))setTab(p);
+    window.scrollTo({top:0,behavior:'instant'});
+  },[]);
+
+  const render=()=>{
+    switch(page){
+      case 'library':           return <LibraryPage navigate={navigate}/>;
+      case 'highlights':        return <AllHighlightsPage navigate={navigate}/>;
+      case 'settings':          return <SettingsPage navigate={navigate}/>;
+      case 'book-detail':       return <BookDetailPage navigate={navigate} bookId={params.bookId}/>;
+      case 'add-book':          return <AddBookPage navigate={navigate}/>;
+      case 'add-highlights':    return <AddHighlightsPage navigate={navigate} bookId={params.bookId}/>;
+      case 'review-highlights': return <ReviewHighlightsPage navigate={navigate} bookId={params.bookId} pendingHighlights={params.pendingHighlights||[]}/>;
+      default:                  return <LibraryPage navigate={navigate}/>;
+    }
+  };
+
+  return (
+    <div className="page">
+      <main style={{paddingBottom:'calc(64px + env(safe-area-inset-bottom,0px))'}}>
+        {render()}
+      </main>
+      <BottomNav activeTab={tab} navigate={navigate}/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
