@@ -163,17 +163,19 @@
       background: rgba(26,22,21,0.45);
       backdrop-filter: blur(3px);
       z-index: 50;
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
     }
 
     /* Modal sheet */
     .modal-sheet {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: calc(100% - 32px); max-width: 480px; z-index: 51;
+      width: 100%; max-width: 480px;
       background: var(--card);
       border-radius: 18px;
       max-height: 90dvh;
       display: flex; flex-direction: column;
       box-shadow: 0 20px 60px rgba(26,22,21,0.25);
+      animation: slideUp 320ms cubic-bezier(0.16,1,0.3,1) forwards;
     }
 
     /* Section labels */
@@ -456,9 +458,8 @@ function ConfirmModal({isOpen, onClose, onConfirm, title, message, confirmLabel=
   },[isOpen]);
   if(!isOpen)return null;
   return (
-    <>
-      <div className="overlay" onClick={onClose}/>
-      <div className="modal-sheet">
+    <div className="overlay" onClick={onClose}>
+      <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
         <div style={{padding:'18px 20px 14px',borderBottom:'1px solid var(--bd)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <h2 style={{margin:0,fontSize:17,fontWeight:600,color:'var(--t1)'}}>{title}</h2>
           <button onClick={onClose} style={{background:'var(--bg2)',border:'none',borderRadius:'50%',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--t2)'}}>
@@ -473,7 +474,7 @@ function ConfirmModal({isOpen, onClose, onConfirm, title, message, confirmLabel=
           <button className={`btn ${danger?'btn-d':'btn-p'}`} style={{flex:1}} onClick={()=>{onConfirm();onClose();}}>{confirmLabel}</button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -972,9 +973,8 @@ function BookDetailPage({navigate, bookId}) {
 
       {/* Add Quote Manually Modal */}
       {showAddManual&&(
-        <>
-          <div className="overlay" onClick={()=>{setShowAddManual(false);setManualDraft({markedText:'',fullContext:'',pageNumber:''});}}/>
-          <div style={{position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',width:'calc(100% - 40px)',maxWidth:480,maxHeight:'90dvh',background:'var(--card)',borderRadius:18,zIndex:51,display:'flex',flexDirection:'column',boxShadow:'0 20px 60px rgba(26,22,21,0.25)'}}>
+        <div className="overlay" onClick={()=>{setShowAddManual(false);setManualDraft({markedText:'',fullContext:'',pageNumber:''});}}>
+          <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
             <div style={{padding:'18px 20px 14px',borderBottom:'1px solid var(--bd)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
               <h2 style={{margin:0,fontSize:17,fontWeight:600,color:'var(--t1)'}}>Add Quote</h2>
               <button onClick={()=>{setShowAddManual(false);setManualDraft({markedText:'',fullContext:'',pageNumber:''});}} style={{background:'var(--bg2)',border:'none',borderRadius:'50%',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--t2)'}}>{IC.x}</button>
@@ -998,7 +998,7 @@ function BookDetailPage({navigate, bookId}) {
               <button className="btn btn-p" style={{flex:1}} onClick={doAddManual} disabled={!manualDraft.markedText.trim()}>Save</button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
