@@ -37,11 +37,11 @@
       background: var(--bg);
       color: var(--t1);
       font-family: 'Outfit', sans-serif;
-      min-height: 100dvh;
+      min-height: 100vh;
       overscroll-behavior: none;
     }
-    #root { min-height: 100dvh; display: flex; flex-direction: column; }
-    .page { max-width: 480px; margin: 0 auto; width: 100%; min-height: 100dvh; position: relative; background: var(--bg); }
+    #root { min-height: 100vh; display: flex; flex-direction: column; }
+    .page { max-width: 480px; margin: 0 auto; width: 100%; min-height: 100vh; position: relative; background: var(--bg); }
 
     /* Scrollbar */
     ::-webkit-scrollbar { width: 3px; }
@@ -159,12 +159,16 @@
 
     /* Overlay */
     .overlay {
-      position: fixed; inset: 0;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(26,22,21,0.45);
       backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
       z-index: 50;
-      display: flex; align-items: center; justify-content: center;
+      display: -webkit-flex; display: flex;
+      -webkit-align-items: center; align-items: center;
+      -webkit-justify-content: center; justify-content: center;
       padding: 16px;
+      box-sizing: border-box;
     }
 
     /* Modal sheet */
@@ -172,10 +176,10 @@
       width: 100%; max-width: 480px;
       background: var(--card);
       border-radius: 18px;
-      max-height: 90dvh;
-      display: flex; flex-direction: column;
+      max-height: 90vh;
+      display: -webkit-flex; display: flex;
+      -webkit-flex-direction: column; flex-direction: column;
       box-shadow: 0 20px 60px rgba(26,22,21,0.25);
-      animation: slideUp 320ms cubic-bezier(0.16,1,0.3,1) forwards;
     }
 
     /* Section labels */
@@ -711,7 +715,7 @@ function LibraryPage({navigate}) {
   const filtered=sortBooks(books.filter(b=>{if(!q.trim())return true;const lo=q.toLowerCase();return b.title?.toLowerCase().includes(lo)||b.author?.toLowerCase().includes(lo)||(b.tags||[]).some(t=>t.toLowerCase().includes(lo));}),sort);
 
   return (
-    <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
+    <div style={{minHeight:'100vh',background:'var(--bg)'}}>
       {/* Sticky header */}
       <div style={{position:'sticky',top:0,zIndex:10,background:'var(--bg)',paddingTop:'calc(18px + env(safe-area-inset-top,0px))'}}>
         <div style={{padding:'0 20px 14px'}}>
@@ -795,7 +799,7 @@ function AllHighlightsPage({navigate}) {
   const doTagRm=(hid,t)=>{const h=highlights.find(x=>x.id===hid);if(!h)return;const nt=(h.tags||[]).filter(x=>x!==t);updateHighlight(hid,{tags:nt});setHighlights(p=>p.map(x=>x.id===hid?{...x,tags:nt}:x));};
 
   return (
-    <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
+    <div style={{minHeight:'100vh',background:'var(--bg)'}}>
       <div style={{position:'sticky',top:0,zIndex:10,background:'var(--bg)',paddingTop:'calc(18px + env(safe-area-inset-top,0px))'}}>
         <div style={{padding:'0 20px 14px'}}>
           <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',marginBottom:14}}>
@@ -905,7 +909,7 @@ function BookDetailPage({navigate, bookId}) {
   };
 
   return (
-    <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
+    <div style={{minHeight:'100vh',background:'var(--bg)'}}>
       {/* Header */}
       <div style={{position:'sticky',top:0,zIndex:10,background:'var(--bg)',borderBottom:'1px solid var(--bd)',padding:'calc(14px + env(safe-area-inset-top,0px)) 20px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <button className="back-btn" onClick={()=>navigate('library')}>{IC.back} Library</button>
@@ -1030,7 +1034,7 @@ function AddBookPage({navigate}) {
   };
 
   return (
-    <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
+    <div style={{minHeight:'100vh',background:'var(--bg)'}}>
       <div style={{position:'sticky',top:0,zIndex:10,background:'var(--bg)',borderBottom:'1px solid var(--bd)',padding:'calc(14px + env(safe-area-inset-top,0px)) 20px 14px',display:'flex',alignItems:'center',gap:12}}>
         <button className="back-btn" onClick={()=>navigate('library')}>{IC.back} Cancel</button>
         <h1 style={{flex:1,margin:0,fontSize:16,fontWeight:600,color:'var(--t1)',textAlign:'center',letterSpacing:'-0.01em'}}>New Book</h1>
@@ -1183,7 +1187,7 @@ function AddHighlightsPage({navigate, bookId}) {
   };
 
   return (
-    <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
+    <div style={{minHeight:'100vh',background:'var(--bg)'}}>
       <div style={{position:'sticky',top:0,zIndex:10,background:'var(--bg)',borderBottom:'1px solid var(--bd)',padding:'calc(14px + env(safe-area-inset-top,0px)) 20px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <button className="back-btn" onClick={()=>navigate('book-detail',{bookId})}>{IC.back} Back</button>
         <div style={{textAlign:'center'}}>
@@ -1288,7 +1292,7 @@ function ReviewHighlightsPage({navigate, bookId, pendingHighlights}) {
   };
 
   return (
-    <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
+    <div style={{minHeight:'100vh',background:'var(--bg)'}}>
       <div style={{position:'sticky',top:0,zIndex:10,background:'var(--bg)',borderBottom:'1px solid var(--bd)',padding:'calc(14px + env(safe-area-inset-top,0px)) 20px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <button className="back-btn" onClick={()=>navigate('book-detail',{bookId})}>{IC.back} Discard</button>
         <div style={{textAlign:'center'}}>
@@ -1417,7 +1421,7 @@ function SettingsPage({navigate}) {
   const szPct=Math.min((sz/(5*1024*1024))*100,100);
 
   return (
-    <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
+    <div style={{minHeight:'100vh',background:'var(--bg)'}}>
       <div style={{padding:'calc(20px + env(safe-area-inset-top,0px)) 20px 18px',borderBottom:'1px solid var(--bd)'}}>
         <h1 style={{margin:0,fontSize:28,fontWeight:700,color:'var(--t1)',letterSpacing:'-0.03em'}}>Settings</h1>
       </div>
