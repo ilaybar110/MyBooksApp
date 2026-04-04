@@ -167,7 +167,7 @@
 
     /* Modal sheet */
     .modal-sheet {
-      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      position: fixed; bottom: 0; left: 0; right: 0; margin: 0 auto;
       width: 100%; max-width: 480px; z-index: 51;
       background: var(--card);
       border-radius: 22px 22px 0 0;
@@ -287,6 +287,7 @@ function ss(data) {
 }
 function addBook(b) { const s=gs(); s.books.push({...b,dateAdded:b.dateAdded||new Date().toISOString(),highlights:b.highlights||[],tags:b.tags||[]}); ss(s); return s.books[s.books.length-1]; }
 function getBook(id) { return gs().books.find(b=>b.id===id)||null; }
+function updateBook(id,upd) { const s=gs(); const i=s.books.findIndex(b=>b.id===id); if(i===-1)return null; s.books[i]={...s.books[i],...upd}; ss(s); return s.books[i]; }
 function deleteBook(id) { const s=gs(); s.highlights=s.highlights.filter(h=>h.bookId!==id); s.books=s.books.filter(b=>b.id!==id); ss(s); }
 function addHighlight(h) { const s=gs(); const nh={...h,dateAdded:h.dateAdded||new Date().toISOString(),isFavorite:h.isFavorite||false,tags:h.tags||[],isEdited:h.isEdited||false}; s.highlights.push(nh); const bi=s.books.findIndex(b=>b.id===h.bookId); if(bi!==-1){if(!s.books[bi].highlights)s.books[bi].highlights=[];s.books[bi].highlights.push(nh.id);} ss(s); return nh; }
 function updateHighlight(id, upd) { const s=gs(); const i=s.highlights.findIndex(h=>h.id===id); if(i===-1)return null; s.highlights[i]={...s.highlights[i],...upd}; ss(s); return s.highlights[i]; }
@@ -529,10 +530,13 @@ function BookCard({book, highlightCount, onClick}) {
 }
 
 /* ─── HighlightCard ─── */
-function HighlightCard({highlight, bookTitle, showBookTitle, onFavoriteToggle, onDelete, onTagAdd, onTagRemove, allTags=[], navigate}) {
+function HighlightCard({highlight, bookTitle, showBookTitle, onFavoriteToggle, onDelete, onEdit, onTagAdd, onTagRemove, allTags=[], navigate}) {
   const [showCtx,setShowCtx]=useState(false);
   const [showTagInp,setShowTagInp]=useState(false);
   const [tagInp,setTagInp]=useState('');
+  const [isEditing,setIsEditing]=useState(false);
+  const [showDelConfirm,setShowDelConfirm]=useState(false);
+  const [draft,setDraft]=useState({markedText:highlight.markedText||'',fullContext:highlight.fullContext||'',pageNumber:highlight.pageNumber||''});
   const dir=getDir(highlight.markedText);
   const rtl=dir==='rtl';
 
@@ -541,75 +545,128 @@ function HighlightCard({highlight, bookTitle, showBookTitle, onFavoriteToggle, o
     if(t&&onTagAdd){onTagAdd(highlight.id,t);setTagInp('');setShowTagInp(false);}
   };
 
+  const doSaveEdit=()=>{
+    if(!draft.markedText.trim())return;
+    if(onEdit)onEdit(highlight.id,{markedText:draft.markedText.trim(),fullContext:draft.fullContext.trim(),pageNumber:draft.pageNumber?Number(draft.pageNumber):null,isEdited:true});
+    setIsEditing(false);
+  };
+
+  const doCancelEdit=()=>{
+    setDraft({markedText:highlight.markedText||'',fullContext:highlight.fullContext||'',pageNumber:highlight.pageNumber||''});
+    setIsEditing(false);
+  };
+
   return (
-    <div className={`hl-item ${rtl?'hl-rtl':'hl-ltr'} fade-up`}>
-      {/* Book title link */}
-      {showBookTitle&&bookTitle&&(
-        <button onClick={()=>navigate&&navigate('book-detail',{bookId:highlight.bookId})}
-          style={{background:'none',border:'none',padding:'0 0 5px',cursor:'pointer',fontSize:11,fontWeight:600,color:'var(--ac)',display:'block',textAlign:rtl?'right':'left'}}>
-          {bookTitle}
-        </button>
-      )}
-      {highlight.pageNumber&&<span style={{display:'block',fontSize:11,color:'var(--t3)',marginBottom:4,textAlign:rtl?'right':'left'}}>p.{highlight.pageNumber}</span>}
-
-      {/* Header row */}
-      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:8,flexDirection:rtl?'row-reverse':'row',marginBottom:8}}>
-        <div style={{position:'relative',flex:1}}>
-          <span style={{position:'absolute',top:-14,right:rtl?0:'auto',left:rtl?'auto':0,fontSize:52,lineHeight:1,color:'var(--ac)',opacity:0.15,fontFamily:"'Noto Serif Hebrew',serif",pointerEvents:'none',userSelect:'none'}}>"</span>
-          <p style={{margin:0,fontSize:16,fontWeight:500,color:'var(--t1)',lineHeight:1.75,textAlign:rtl?'right':'left',direction:dir,fontFamily:rtl?"'Noto Serif Hebrew',serif":undefined,paddingTop:4}}>
-            {highlight.markedText}
-          </p>
-        </div>
-        <button
-          onClick={()=>onFavoriteToggle&&onFavoriteToggle(highlight.id,!highlight.isFavorite)}
-          style={{background:'none',border:'none',padding:'3px',cursor:'pointer',color:highlight.isFavorite?'var(--gold)':'var(--t3)',flexShrink:0,display:'flex',alignItems:'center',borderRadius:6}}
-        >
-          {IC.star(highlight.isFavorite)}
-        </button>
-      </div>
-
-      {/* Context toggle */}
-      {highlight.fullContext&&highlight.fullContext!==highlight.markedText&&(
-        <div style={{marginBottom:8}}>
-          <button onClick={()=>setShowCtx(v=>!v)}
-            style={{background:'none',border:'none',padding:0,cursor:'pointer',fontSize:12,color:'var(--t2)',display:'flex',alignItems:'center',gap:4,flexDirection:rtl?'row-reverse':'row'}}>
-            <span style={{transform:showCtx?'rotate(180deg)':'none',transition:'transform 0.2s',display:'inline-block'}}>{IC.down}</span>
-            {showCtx?'Hide context':'Show context'}
+    <>
+      <div className={`hl-item ${rtl?'hl-rtl':'hl-ltr'} fade-up`}>
+        {/* Book title link */}
+        {showBookTitle&&bookTitle&&(
+          <button onClick={()=>navigate&&navigate('book-detail',{bookId:highlight.bookId})}
+            style={{background:'none',border:'none',padding:'0 0 5px',cursor:'pointer',fontSize:11,fontWeight:600,color:'var(--ac)',display:'block',textAlign:rtl?'right':'left'}}>
+            {bookTitle}
           </button>
-          {showCtx&&<p style={{margin:'8px 0 0',fontSize:12,color:'var(--t2)',lineHeight:1.65,padding:'10px 12px',background:'var(--bg2)',borderRadius:8,direction:dir,textAlign:rtl?'right':'left'}}>{highlight.fullContext}</p>}
-        </div>
-      )}
+        )}
+        {!isEditing&&highlight.pageNumber&&<span style={{display:'block',fontSize:11,color:'var(--t3)',marginBottom:4,textAlign:rtl?'right':'left'}}>p.{highlight.pageNumber}</span>}
 
-      {/* Tags */}
-      <div style={{display:'flex',flexWrap:'wrap',gap:6,alignItems:'center',marginBottom:8,flexDirection:rtl?'row-reverse':'row'}}>
-        {(highlight.tags||[]).map(t=><TagPill key={t} tag={t} onRemove={onTagRemove?()=>onTagRemove(highlight.id,t):undefined}/>)}
-        {onTagAdd&&(showTagInp
-          ? <div style={{display:'flex',alignItems:'center',gap:4}}>
-              <input value={tagInp} onChange={e=>setTagInp(e.target.value)}
-                onKeyDown={e=>{if(e.key==='Enter')doAddTag();if(e.key==='Escape'){setShowTagInp(false);setTagInp('');}}}
-                onBlur={()=>{if(!tagInp.trim())setShowTagInp(false);}}
-                placeholder="tag" autoFocus list="tag-opts"
-                style={{border:'1.5px solid var(--ac)',borderRadius:20,padding:'3px 10px',fontSize:12,fontFamily:'Outfit,sans-serif',color:'var(--t1)',background:'var(--card)',outline:'none',width:90}}/>
-              <datalist id="tag-opts">{allTags.map(t=><option key={t} value={t}/>)}</datalist>
-              <button onClick={doAddTag} style={{background:'var(--ac)',border:'none',borderRadius:'50%',width:22,height:22,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'white',padding:0}}>{IC.check}</button>
-            </div>
-          : <button onClick={()=>setShowTagInp(true)} className="tag" style={{background:'none',border:'1px dashed var(--bd)',cursor:'pointer',color:'var(--t3)'}}>
-              {IC.plus} tag
+        {/* Header row — favorite star */}
+        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:8,flexDirection:rtl?'row-reverse':'row',marginBottom:8}}>
+          <div style={{position:'relative',flex:1}}>
+            {!isEditing&&<span style={{position:'absolute',top:-14,right:rtl?0:'auto',left:rtl?'auto':0,fontSize:52,lineHeight:1,color:'var(--ac)',opacity:0.15,fontFamily:"'Noto Serif Hebrew',serif",pointerEvents:'none',userSelect:'none'}}>"</span>}
+            {isEditing ? (
+              <div>
+                <label style={{display:'block',fontSize:11,fontWeight:600,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:4,textAlign:rtl?'right':'left'}}>Quote</label>
+                <textarea value={draft.markedText} onChange={e=>setDraft(d=>({...d,markedText:e.target.value}))} rows={4} dir={dir}
+                  style={{width:'100%',fontFamily:rtl?"'Noto Serif Hebrew',serif":'inherit',fontSize:15,lineHeight:1.7,color:'var(--t1)',background:'var(--bg2)',border:'1.5px solid var(--ac)',borderRadius:8,padding:'10px 12px',resize:'vertical',outline:'none',boxSizing:'border-box',direction:dir,marginBottom:10}}/>
+                <label style={{display:'block',fontSize:11,fontWeight:600,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:4,textAlign:rtl?'right':'left'}}>Context (optional)</label>
+                <textarea value={draft.fullContext} onChange={e=>setDraft(d=>({...d,fullContext:e.target.value}))} rows={3} dir={dir}
+                  style={{width:'100%',fontSize:13,lineHeight:1.65,color:'var(--t2)',background:'var(--bg2)',border:'1.5px solid var(--bd)',borderRadius:8,padding:'10px 12px',resize:'vertical',outline:'none',boxSizing:'border-box',direction:dir,marginBottom:10}}/>
+                <label style={{display:'block',fontSize:11,fontWeight:600,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:4}}>Page number (optional)</label>
+                <input type="number" value={draft.pageNumber} onChange={e=>setDraft(d=>({...d,pageNumber:e.target.value}))} placeholder="e.g. 42"
+                  style={{width:110,fontSize:14,color:'var(--t1)',background:'var(--bg2)',border:'1.5px solid var(--bd)',borderRadius:8,padding:'8px 12px',outline:'none',boxSizing:'border-box',marginBottom:12}}/>
+                <div style={{display:'flex',gap:8}}>
+                  <button onClick={doSaveEdit} style={{flex:1,background:'var(--ac)',color:'white',border:'none',borderRadius:8,padding:'10px 16px',fontSize:14,fontWeight:600,cursor:'pointer'}}>Save</button>
+                  <button onClick={doCancelEdit} style={{flex:1,background:'var(--bg2)',color:'var(--t2)',border:'1px solid var(--bd)',borderRadius:8,padding:'10px 16px',fontSize:14,cursor:'pointer'}}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <p style={{margin:0,fontSize:16,fontWeight:500,color:'var(--t1)',lineHeight:1.75,textAlign:rtl?'right':'left',direction:dir,fontFamily:rtl?"'Noto Serif Hebrew',serif":undefined,paddingTop:4}}>
+                {highlight.markedText}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={()=>onFavoriteToggle&&onFavoriteToggle(highlight.id,!highlight.isFavorite)}
+            style={{background:'none',border:'none',padding:'3px',cursor:'pointer',color:highlight.isFavorite?'var(--gold)':'var(--t3)',flexShrink:0,display:'flex',alignItems:'center',borderRadius:6}}
+          >
+            {IC.star(highlight.isFavorite)}
+          </button>
+        </div>
+
+        {/* Context toggle — hidden in edit mode */}
+        {!isEditing&&highlight.fullContext&&highlight.fullContext!==highlight.markedText&&(
+          <div style={{marginBottom:8}}>
+            <button onClick={()=>setShowCtx(v=>!v)}
+              style={{background:'none',border:'none',padding:0,cursor:'pointer',fontSize:12,color:'var(--t2)',display:'flex',alignItems:'center',gap:4,flexDirection:rtl?'row-reverse':'row'}}>
+              <span style={{transform:showCtx?'rotate(180deg)':'none',transition:'transform 0.2s',display:'inline-block'}}>{IC.down}</span>
+              {showCtx?'Hide context':'Show context'}
             </button>
+            {showCtx&&<p style={{margin:'8px 0 0',fontSize:12,color:'var(--t2)',lineHeight:1.65,padding:'10px 12px',background:'var(--bg2)',borderRadius:8,direction:dir,textAlign:rtl?'right':'left'}}>{highlight.fullContext}</p>}
+          </div>
+        )}
+
+        {/* Tags */}
+        <div style={{display:'flex',flexWrap:'wrap',gap:6,alignItems:'center',marginBottom:8,flexDirection:rtl?'row-reverse':'row'}}>
+          {(highlight.tags||[]).map(t=><TagPill key={t} tag={t} onRemove={onTagRemove?()=>onTagRemove(highlight.id,t):undefined}/>)}
+          {onTagAdd&&(showTagInp
+            ? <div style={{display:'flex',alignItems:'center',gap:4}}>
+                <input value={tagInp} onChange={e=>setTagInp(e.target.value)}
+                  onKeyDown={e=>{if(e.key==='Enter')doAddTag();if(e.key==='Escape'){setShowTagInp(false);setTagInp('');}}}
+                  onBlur={()=>{if(!tagInp.trim())setShowTagInp(false);}}
+                  placeholder="tag" autoFocus list="tag-opts"
+                  style={{border:'1.5px solid var(--ac)',borderRadius:20,padding:'3px 10px',fontSize:12,fontFamily:'Outfit,sans-serif',color:'var(--t1)',background:'var(--card)',outline:'none',width:90}}/>
+                <datalist id="tag-opts">{allTags.map(t=><option key={t} value={t}/>)}</datalist>
+                <button onClick={doAddTag} style={{background:'var(--ac)',border:'none',borderRadius:'50%',width:22,height:22,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'white',padding:0}}>{IC.check}</button>
+              </div>
+            : <button onClick={()=>setShowTagInp(true)} className="tag" style={{background:'none',border:'1px dashed var(--bd)',cursor:'pointer',color:'var(--t3)'}}>
+                {IC.plus} tag
+              </button>
+          )}
+        </div>
+
+        {/* Footer — always LTR so buttons stay predictable */}
+        {!isEditing&&(
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',direction:'ltr'}}>
+            <span style={{fontSize:11,color:'var(--t3)'}}>{fmtDate(highlight.dateAdded)}{highlight.isEdited&&' · edited'}</span>
+            <div style={{display:'flex',gap:2}}>
+              {onEdit&&<button onClick={()=>setIsEditing(true)}
+                style={{background:'none',border:'none',padding:'3px 7px',cursor:'pointer',fontSize:11,color:'var(--t3)',display:'flex',alignItems:'center',gap:3,borderRadius:6}}
+                onMouseEnter={e=>e.currentTarget.style.color='var(--ac)'}
+                onMouseLeave={e=>e.currentTarget.style.color='var(--t3)'}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit
+              </button>}
+              {onDelete&&<button onClick={()=>setShowDelConfirm(true)}
+                style={{background:'none',border:'none',padding:'3px 7px',cursor:'pointer',fontSize:11,color:'var(--t3)',display:'flex',alignItems:'center',gap:3,borderRadius:6}}
+                onMouseEnter={e=>e.currentTarget.style.color='var(--err)'}
+                onMouseLeave={e=>e.currentTarget.style.color='var(--t3)'}>
+                {IC.trash} Delete
+              </button>}
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Footer */}
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexDirection:rtl?'row-reverse':'row'}}>
-        <span style={{fontSize:11,color:'var(--t3)'}}>{fmtDate(highlight.dateAdded)}{highlight.isEdited&&' · edited'}</span>
-        {onDelete&&<button onClick={()=>onDelete(highlight.id)}
-          style={{background:'none',border:'none',padding:'3px 7px',cursor:'pointer',fontSize:11,color:'var(--t3)',display:'flex',alignItems:'center',gap:3,borderRadius:6}}
-          onMouseEnter={e=>e.currentTarget.style.color='var(--err)'}
-          onMouseLeave={e=>e.currentTarget.style.color='var(--t3)'}>
-          {IC.trash} Delete
-        </button>}
-      </div>
-    </div>
+      {/* ConfirmModal is OUTSIDE the fade-up div to avoid CSS transform stacking-context trap */}
+      <ConfirmModal
+        isOpen={showDelConfirm}
+        onClose={()=>setShowDelConfirm(false)}
+        onConfirm={()=>onDelete&&onDelete(highlight.id)}
+        title="Delete Highlight"
+        message="Delete this highlight? This cannot be undone."
+        confirmLabel="Delete"
+        danger
+      />
+    </>
   );
 }
 
@@ -733,6 +790,7 @@ function AllHighlightsPage({navigate}) {
 
   const doFavTog=(id,v)=>{updateHighlight(id,{isFavorite:v});setHighlights(p=>p.map(h=>h.id===id?{...h,isFavorite:v}:h));};
   const doDel=(id)=>{delHighlight(id);setHighlights(p=>p.filter(h=>h.id!==id));};
+  const doEdit=(id,upd)=>{updateHighlight(id,upd);setHighlights(p=>p.map(h=>h.id===id?{...h,...upd}:h));};
   const doTagAdd=(hid,t)=>{const h=highlights.find(x=>x.id===hid);if(!h)return;const nt=[...new Set([...(h.tags||[]),t])];updateHighlight(hid,{tags:nt});setHighlights(p=>p.map(x=>x.id===hid?{...x,tags:nt}:x));addTag(t);setAllTags(getAllTags());};
   const doTagRm=(hid,t)=>{const h=highlights.find(x=>x.id===hid);if(!h)return;const nt=(h.tags||[]).filter(x=>x!==t);updateHighlight(hid,{tags:nt});setHighlights(p=>p.map(x=>x.id===hid?{...x,tags:nt}:x));};
 
@@ -796,7 +854,7 @@ function AllHighlightsPage({navigate}) {
           ? <EmptyState icon={IC.bookmark} title="No highlights yet" description="Add books and photograph marked pages to start collecting." action={<button className="btn btn-p" onClick={()=>navigate('library')}>Go to Library</button>}/>
           : filtered.length===0
             ? <EmptyState icon={IC.search} title="No matches" description="Try adjusting your search or filters." action={<button className="btn btn-s" onClick={()=>{setQ('');setFavOnly(false);setFilterTag(null);setFilterBook(null);}}>Clear</button>}/>
-            : filtered.map(h=><HighlightCard key={h.id} highlight={h} bookTitle={bookTitle(h.bookId)} showBookTitle allTags={allTags} navigate={navigate} onFavoriteToggle={doFavTog} onDelete={doDel} onTagAdd={doTagAdd} onTagRemove={doTagRm}/>)
+            : filtered.map(h=><HighlightCard key={h.id} highlight={h} bookTitle={bookTitle(h.bookId)} showBookTitle allTags={allTags} navigate={navigate} onFavoriteToggle={doFavTog} onDelete={doDel} onEdit={doEdit} onTagAdd={doTagAdd} onTagRemove={doTagRm}/>)
         }
       </div>
     </div>
@@ -809,7 +867,21 @@ function BookDetailPage({navigate, bookId}) {
   const [highlights,setHighlights]=useState([]);
   const [allTags,setAllTags]=useState([]);
   const [showDel,setShowDel]=useState(false);
+  const [showAddManual,setShowAddManual]=useState(false);
+  const [manualDraft,setManualDraft]=useState({markedText:'',fullContext:'',pageNumber:''});
   const [q,setQ]=useState('');
+  const coverInputRef=useRef(null);
+
+  const handleCoverChange=async(e)=>{
+    const f=e.target.files?.[0]; if(!f)return;
+    try{
+      const b=await fileToB64(f);
+      const compressed=await compressImg(b,600,0.8);
+      const updated=updateBook(bookId,{coverPhoto:compressed});
+      setBook(updated);
+    }catch(err){console.error('Cover update failed',err);}
+    e.target.value='';
+  };
 
   const load=useCallback(()=>{const b=getBook(bookId);if(!b){navigate('library');return;}setBook(b);setHighlights(getHighlights(bookId));setAllTags(getAllTags());},[bookId,navigate]);
   useEffect(()=>{load();},[load]);
@@ -821,8 +893,16 @@ function BookDetailPage({navigate, bookId}) {
 
   const doFavTog=(id,v)=>{updateHighlight(id,{isFavorite:v});setHighlights(p=>p.map(h=>h.id===id?{...h,isFavorite:v}:h));};
   const doDel=(id)=>{delHighlight(id);setHighlights(p=>p.filter(h=>h.id!==id));};
+  const doEdit=(id,upd)=>{updateHighlight(id,upd);setHighlights(p=>p.map(h=>h.id===id?{...h,...upd}:h));};
   const doTagAdd=(hid,t)=>{const h=highlights.find(x=>x.id===hid);if(!h)return;const nt=[...new Set([...(h.tags||[]),t])];updateHighlight(hid,{tags:nt});setHighlights(p=>p.map(x=>x.id===hid?{...x,tags:nt}:x));addTag(t);setAllTags(getAllTags());};
   const doTagRm=(hid,t)=>{const h=highlights.find(x=>x.id===hid);if(!h)return;const nt=(h.tags||[]).filter(x=>x!==t);updateHighlight(hid,{tags:nt});setHighlights(p=>p.map(x=>x.id===hid?{...x,tags:nt}:x));};
+  const doAddManual=()=>{
+    if(!manualDraft.markedText.trim())return;
+    const nh=addHighlight({id:'h_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),bookId,markedText:manualDraft.markedText.trim(),fullContext:manualDraft.fullContext.trim()||'',pageNumber:manualDraft.pageNumber?Number(manualDraft.pageNumber):null,isFavorite:false,tags:[],isEdited:false});
+    setHighlights(p=>[nh,...p]);
+    setManualDraft({markedText:'',fullContext:'',pageNumber:''});
+    setShowAddManual(false);
+  };
 
   return (
     <div style={{minHeight:'100dvh',background:'var(--bg)'}}>
@@ -834,9 +914,23 @@ function BookDetailPage({navigate, bookId}) {
 
       {/* Book hero — split layout */}
       <div style={{display:'flex',gap:18,padding:'22px 20px 18px',background:'var(--card)',borderBottom:'1px solid var(--bd)'}}>
-        <div style={{width:72,flexShrink:0,aspectRatio:'2/3',borderRadius:8,overflow:'hidden',background:'var(--bg2)',boxShadow:'0 6px 20px rgba(26,22,21,0.15)'}}>
+        <div
+          onClick={()=>coverInputRef.current?.click()}
+          style={{width:72,flexShrink:0,aspectRatio:'2/3',borderRadius:8,overflow:'hidden',background:'var(--bg2)',boxShadow:'0 6px 20px rgba(26,22,21,0.15)',position:'relative',cursor:'pointer'}}
+        >
           {book.coverPhoto ? <img src={book.coverPhoto} alt={book.title} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/> : <div className="cover-ph" style={{height:'100%'}}>{IC.book}</div>}
+          {/* Camera overlay */}
+          <div style={{position:'absolute',inset:0,background:'rgba(26,22,21,0.45)',display:'flex',alignItems:'center',justifyContent:'center',opacity:0,transition:'opacity 0.2s'}}
+            onMouseEnter={e=>e.currentTarget.style.opacity=1}
+            onMouseLeave={e=>e.currentTarget.style.opacity=0}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </div>
         </div>
+        <input ref={coverInputRef} type="file" accept="image/*" onChange={handleCoverChange} style={{display:'none'}}/>
         <div style={{flex:1,minWidth:0}}>
           <h1 style={{margin:'0 0 4px',fontSize:19,fontWeight:700,color:'var(--t1)',lineHeight:1.25,letterSpacing:'-0.02em'}}>{book.title}</h1>
           <p style={{margin:'0 0 10px',fontSize:13,color:'var(--t2)'}}>{book.author}</p>
@@ -849,9 +943,13 @@ function BookDetailPage({navigate, bookId}) {
       </div>
 
       {/* Action bar */}
-      <div style={{padding:'14px 20px',borderBottom:'1px solid var(--bd)'}}>
-        <button className="btn btn-p btn-w btn-lg" onClick={()=>navigate('add-highlights',{bookId:book.id})}>
-          {IC.photo} Add Highlights via Photo
+      <div style={{padding:'14px 20px',borderBottom:'1px solid var(--bd)',display:'flex',gap:10}}>
+        <button className="btn btn-p btn-lg" style={{flex:1}} onClick={()=>navigate('add-highlights',{bookId:book.id})}>
+          {IC.photo} Add via Photo
+        </button>
+        <button className="btn btn-s btn-lg" style={{flex:1}} onClick={()=>setShowAddManual(true)}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Type Manually
         </button>
       </div>
 
@@ -868,10 +966,42 @@ function BookDetailPage({navigate, bookId}) {
         {filtered.length===0?(
           q ? <EmptyState title="No results" description={`No highlights match "${q}"`}/>
             : <EmptyState icon={IC.bookmark} title="No highlights yet" description="Photograph book pages with underlined text to extract highlights." action={<button className="btn btn-p" onClick={()=>navigate('add-highlights',{bookId:book.id})}>Add Highlights</button>}/>
-        ) : filtered.map(h=><HighlightCard key={h.id} highlight={h} allTags={allTags} onFavoriteToggle={doFavTog} onDelete={doDel} onTagAdd={doTagAdd} onTagRemove={doTagRm} navigate={navigate}/>)}
+        ) : filtered.map(h=><HighlightCard key={h.id} highlight={h} allTags={allTags} onFavoriteToggle={doFavTog} onDelete={doDel} onEdit={doEdit} onTagAdd={doTagAdd} onTagRemove={doTagRm} navigate={navigate}/>)}
       </div>
 
       <ConfirmModal isOpen={showDel} onClose={()=>setShowDel(false)} onConfirm={()=>{deleteBook(bookId);navigate('library');}} title="Delete Book" message={`Delete "${book.title}" and all ${highlights.length} highlight(s)? This cannot be undone.`} confirmLabel="Delete Book" danger/>
+
+      {/* Add Quote Manually Modal */}
+      {showAddManual&&(
+        <>
+          <div className="overlay" onClick={()=>{setShowAddManual(false);setManualDraft({markedText:'',fullContext:'',pageNumber:''});}}/>
+          <div className="modal-sheet slide-up" style={{maxHeight:'90dvh',display:'flex',flexDirection:'column'}}>
+            <div style={{width:36,height:4,background:'var(--bd)',borderRadius:2,margin:'14px auto 0',flexShrink:0}}/>
+            <div style={{padding:'18px 20px 14px',borderBottom:'1px solid var(--bd)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+              <h2 style={{margin:0,fontSize:17,fontWeight:600,color:'var(--t1)'}}>Add Quote</h2>
+              <button onClick={()=>{setShowAddManual(false);setManualDraft({markedText:'',fullContext:'',pageNumber:''});}} style={{background:'var(--bg2)',border:'none',borderRadius:'50%',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--t2)'}}>{IC.x}</button>
+            </div>
+            <div style={{padding:'20px',overflowY:'auto',flex:1,display:'flex',flexDirection:'column',gap:16}}>
+              <div>
+                <label style={{display:'block',fontSize:12,fontWeight:600,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>Quote *</label>
+                <textarea autoFocus className="inp" rows={5} placeholder="Type or paste the quote here…" value={manualDraft.markedText} onChange={e=>setManualDraft(d=>({...d,markedText:e.target.value}))} style={{fontFamily:"'Outfit',sans-serif",fontSize:15,lineHeight:1.7}}/>
+              </div>
+              <div>
+                <label style={{display:'block',fontSize:12,fontWeight:600,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>Context (optional)</label>
+                <textarea className="inp" rows={3} placeholder="Surrounding passage for context…" value={manualDraft.fullContext} onChange={e=>setManualDraft(d=>({...d,fullContext:e.target.value}))} style={{fontSize:13,lineHeight:1.65}}/>
+              </div>
+              <div>
+                <label style={{display:'block',fontSize:12,fontWeight:600,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>Page Number (optional)</label>
+                <input type="number" className="inp" placeholder="e.g. 42" value={manualDraft.pageNumber} onChange={e=>setManualDraft(d=>({...d,pageNumber:e.target.value}))} style={{width:120}}/>
+              </div>
+            </div>
+            <div style={{padding:'16px 20px',borderTop:'1px solid var(--bd)',display:'flex',gap:10,flexShrink:0}}>
+              <button className="btn btn-s" style={{flex:1}} onClick={()=>{setShowAddManual(false);setManualDraft({markedText:'',fullContext:'',pageNumber:''});}}>Cancel</button>
+              <button className="btn btn-p" style={{flex:1}} onClick={doAddManual} disabled={!manualDraft.markedText.trim()}>Save</button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

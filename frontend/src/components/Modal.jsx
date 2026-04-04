@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function Modal({ isOpen, onClose, title, children, footer }) {
   useEffect(() => {
@@ -14,7 +15,7 @@ export default function Modal({ isOpen, onClose, title, children, footer }) {
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
@@ -40,6 +41,7 @@ export default function Modal({ isOpen, onClose, title, children, footer }) {
           maxHeight: '90vh',
           display: 'flex',
           flexDirection: 'column',
+          direction: 'ltr',
         }}
       >
         {/* Handle */}
@@ -116,7 +118,8 @@ export default function Modal({ isOpen, onClose, title, children, footer }) {
           </div>
         )}
       </div>
-    </>
+    </>,
+    document.body
   );
 }
 

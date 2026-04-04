@@ -71,6 +71,11 @@ export default function AllHighlightsPage({ navigate }) {
     setHighlights(prev => prev.map(x => x.id === highlightId ? { ...x, tags: newTags } : x));
   };
 
+  const handleEditHighlight = (id, updates) => {
+    updateHighlight(id, updates);
+    setHighlights(prev => prev.map(h => h.id === id ? { ...h, ...updates } : h));
+  };
+
   const filtered = sortHighlights(
     highlights.filter(h => {
       if (filterFavorites && !h.isFavorite) return false;
@@ -402,6 +407,7 @@ export default function AllHighlightsPage({ navigate }) {
               showBookTitle
               onFavoriteToggle={handleFavoriteToggle}
               onDelete={handleDeleteHighlight}
+              onEdit={handleEditHighlight}
               onTagAdd={handleTagAdd}
               onTagRemove={handleTagRemove}
               allTags={allTags}

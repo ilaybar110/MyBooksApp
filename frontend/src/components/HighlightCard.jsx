@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { formatDate, getTextDirection } from '../utils/helpers.js';
 import TagPill from './TagPill.jsx';
+import { ConfirmModal } from './Modal.jsx';
 
 export default function HighlightCard({
   highlight,
   bookTitle,
   onFavoriteToggle,
   onDelete,
+  onEdit,
   onTagAdd,
   onTagRemove,
   showBookTitle = false,
@@ -16,6 +18,13 @@ export default function HighlightCard({
   const [showContext, setShowContext] = useState(false);
   const [showTagInput, setShowTagInput] = useState(false);
   const [tagInput, setTagInput] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editDraft, setEditDraft] = useState({
+    markedText: highlight.markedText || '',
+    fullContext: highlight.fullContext || '',
+    pageNumber: highlight.pageNumber || '',
+  });
 
   const dir = getTextDirection(highlight.markedText);
   const isRTL = dir === 'rtl';
@@ -35,6 +44,28 @@ export default function HighlightCard({
       setShowTagInput(false);
       setTagInput('');
     }
+  };
+
+  const handleEditSave = () => {
+    if (!editDraft.markedText.trim()) return;
+    if (onEdit) {
+      onEdit(highlight.id, {
+        markedText: editDraft.markedText.trim(),
+        fullContext: editDraft.fullContext.trim(),
+        pageNumber: editDraft.pageNumber ? Number(editDraft.pageNumber) : null,
+        isEdited: true,
+      });
+    }
+    setIsEditing(false);
+  };
+
+  const handleEditCancel = () => {
+    setEditDraft({
+      markedText: highlight.markedText || '',
+      fullContext: highlight.fullContext || '',
+      pageNumber: highlight.pageNumber || '',
+    });
+    setIsEditing(false);
   };
 
   return (
@@ -122,88 +153,206 @@ export default function HighlightCard({
         </button>
       </div>
 
-      {/* Marked text */}
-      <div style={{ position: 'relative', marginBottom: highlight.fullContext ? '8px' : '10px' }}>
-        <span style={{
-          position: 'absolute',
-          top: '-14px',
-          right: isRTL ? '0' : 'auto',
-          left: isRTL ? 'auto' : '0',
-          fontSize: '52px',
-          lineHeight: 1,
-          color: 'var(--accent-primary)',
-          opacity: 0.15,
-          fontFamily: "'Noto Serif Hebrew', serif",
-          pointerEvents: 'none',
-          userSelect: 'none',
-        }}>"</span>
-        <p
-          style={{
-            fontFamily: isRTL ? "'Noto Serif Hebrew', serif" : 'Source Serif 4, serif',
-            fontSize: '16px',
-            fontWeight: 400,
-            color: 'var(--text-primary)',
-            lineHeight: 1.75,
-            margin: 0,
-            paddingTop: '4px',
-            textAlign: isRTL ? 'right' : 'left',
-          }}
-        >
-          {highlight.markedText}
-        </p>
-      </div>
-
-      {/* Show context toggle */}
-      {highlight.fullContext && highlight.fullContext !== highlight.markedText && (
-        <div style={{ marginBottom: '10px' }}>
-          <button
-            onClick={() => setShowContext(v => !v)}
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-              fontFamily: 'DM Sans, sans-serif',
-              fontSize: '12px',
-              color: 'var(--accent-secondary)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              textAlign: isRTL ? 'right' : 'left',
-              flexDirection: isRTL ? 'row-reverse' : 'row',
-            }}
-          >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              style={{ transform: showContext ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 200ms' }}
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-            {showContext ? 'Hide context' : 'Show context'}
-          </button>
-          {showContext && (
-            <p
+      {/* Edit mode form */}
+      {isEditing ? (
+        <div style={{ marginBottom: '12px' }}>
+          <div style={{ marginBottom: '10px' }}>
+            <label style={{ display: 'block', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px', textAlign: isRTL ? 'right' : 'left' }}>
+              Quote
+            </label>
+            <textarea
+              value={editDraft.markedText}
+              onChange={e => setEditDraft(d => ({ ...d, markedText: e.target.value }))}
+              rows={4}
+              dir={dir}
               style={{
+                width: '100%',
+                fontFamily: isRTL ? "'Noto Serif Hebrew', serif" : 'Source Serif 4, serif',
+                fontSize: '15px',
+                lineHeight: 1.7,
+                color: 'var(--text-primary)',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--accent-primary)',
+                borderRadius: '8px',
+                padding: '10px 12px',
+                resize: 'vertical',
+                outline: 'none',
+                boxSizing: 'border-box',
+                direction: dir,
+              }}
+            />
+          </div>
+          <div style={{ marginBottom: '10px' }}>
+            <label style={{ display: 'block', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px', textAlign: isRTL ? 'right' : 'left' }}>
+              Context (optional)
+            </label>
+            <textarea
+              value={editDraft.fullContext}
+              onChange={e => setEditDraft(d => ({ ...d, fullContext: e.target.value }))}
+              rows={3}
+              dir={dir}
+              style={{
+                width: '100%',
                 fontFamily: isRTL ? 'Assistant, sans-serif' : 'Source Serif 4, serif',
                 fontSize: '13px',
-                color: 'var(--text-secondary)',
                 lineHeight: 1.65,
-                margin: '8px 0 0',
-                padding: '10px 12px',
+                color: 'var(--text-secondary)',
                 background: 'var(--bg-secondary)',
-                borderRadius: '6px',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                padding: '10px 12px',
+                resize: 'vertical',
+                outline: 'none',
+                boxSizing: 'border-box',
+                direction: dir,
+              }}
+            />
+          </div>
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ display: 'block', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px', textAlign: isRTL ? 'right' : 'left' }}>
+              Page number (optional)
+            </label>
+            <input
+              type="number"
+              value={editDraft.pageNumber}
+              onChange={e => setEditDraft(d => ({ ...d, pageNumber: e.target.value }))}
+              placeholder="e.g. 42"
+              style={{
+                width: '120px',
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: '14px',
+                color: 'var(--text-primary)',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={handleEditSave}
+              style={{
+                flex: 1,
+                background: 'var(--accent-primary)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '9px 16px',
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Save
+            </button>
+            <button
+              onClick={handleEditCancel}
+              style={{
+                flex: 1,
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                padding: '9px 16px',
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: '14px',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Marked text */}
+          <div style={{ position: 'relative', marginBottom: highlight.fullContext ? '8px' : '10px' }}>
+            <span style={{
+              position: 'absolute',
+              top: '-14px',
+              right: isRTL ? '0' : 'auto',
+              left: isRTL ? 'auto' : '0',
+              fontSize: '52px',
+              lineHeight: 1,
+              color: 'var(--accent-primary)',
+              opacity: 0.15,
+              fontFamily: "'Noto Serif Hebrew', serif",
+              pointerEvents: 'none',
+              userSelect: 'none',
+            }}>"</span>
+            <p
+              style={{
+                fontFamily: isRTL ? "'Noto Serif Hebrew', serif" : 'Source Serif 4, serif',
+                fontSize: '16px',
+                fontWeight: 400,
+                color: 'var(--text-primary)',
+                lineHeight: 1.75,
+                margin: 0,
+                paddingTop: '4px',
                 textAlign: isRTL ? 'right' : 'left',
               }}
             >
-              {highlight.fullContext}
+              {highlight.markedText}
             </p>
+          </div>
+
+          {/* Show context toggle */}
+          {highlight.fullContext && highlight.fullContext !== highlight.markedText && (
+            <div style={{ marginBottom: '10px' }}>
+              <button
+                onClick={() => setShowContext(v => !v)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  fontFamily: 'DM Sans, sans-serif',
+                  fontSize: '12px',
+                  color: 'var(--accent-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  textAlign: isRTL ? 'right' : 'left',
+                  flexDirection: isRTL ? 'row-reverse' : 'row',
+                }}
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{ transform: showContext ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 200ms' }}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+                {showContext ? 'Hide context' : 'Show context'}
+              </button>
+              {showContext && (
+                <p
+                  style={{
+                    fontFamily: isRTL ? 'Assistant, sans-serif' : 'Source Serif 4, serif',
+                    fontSize: '13px',
+                    color: 'var(--text-secondary)',
+                    lineHeight: 1.65,
+                    margin: '8px 0 0',
+                    padding: '10px 12px',
+                    background: 'var(--bg-secondary)',
+                    borderRadius: '6px',
+                    textAlign: isRTL ? 'right' : 'left',
+                  }}
+                >
+                  {highlight.fullContext}
+                </p>
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
 
       {/* Tags */}
@@ -302,7 +451,7 @@ export default function HighlightCard({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          flexDirection: isRTL ? 'row-reverse' : 'row',
+          direction: 'ltr',
         }}
       >
         <span
@@ -313,40 +462,76 @@ export default function HighlightCard({
           }}
         >
           {formatDate(highlight.dateAdded)}
-          {highlight.isEdited && (
-            <span style={{ marginLeft: isRTL ? 0 : '4px', marginRight: isRTL ? '4px' : 0 }}>· edited</span>
-          )}
+          {highlight.isEdited && <span style={{ marginLeft: '4px' }}>· edited</span>}
         </span>
 
-        {onDelete && (
-          <button
-            onClick={() => onDelete(highlight.id)}
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: '4px 8px',
-              cursor: 'pointer',
-              fontFamily: 'DM Sans, sans-serif',
-              fontSize: '11px',
-              color: 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '3px',
-              borderRadius: '4px',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--danger)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; }}
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6l-1 14H6L5 6" />
-              <path d="M10 11v6M14 11v6" />
-              <path d="M9 6V4h6v2" />
-            </svg>
-            Delete
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '4px' }}>
+          {onEdit && !isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '4px 8px',
+                cursor: 'pointer',
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: '11px',
+                color: 'var(--text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                borderRadius: '4px',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              Edit
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '4px 8px',
+                cursor: 'pointer',
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: '11px',
+                color: 'var(--text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                borderRadius: '4px',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--danger)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14H6L5 6" />
+                <path d="M10 11v6M14 11v6" />
+                <path d="M9 6V4h6v2" />
+              </svg>
+              Delete
+            </button>
+          )}
+        </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={() => onDelete && onDelete(highlight.id)}
+        title="Delete Highlight"
+        message="Are you sure you want to delete this highlight? This cannot be undone."
+        confirmLabel="Delete"
+        danger
+      />
     </div>
   );
 }
