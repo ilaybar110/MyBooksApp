@@ -12,6 +12,36 @@ const DEFAULT_STATE = {
   },
 };
 
+// ── Server sync ───────────────────────────────────────────
+
+async function pushToServer(data) {
+  try {
+    await fetch('/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  } catch (e) {
+    // offline or dev without backend — silent fail
+  }
+}
+
+export async function initStorage() {
+  try {
+    const res = await fetch('/api/data');
+    if (res.ok) {
+      const data = await res.json();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      return data;
+    }
+  } catch (e) {
+    // no server — fall back to localStorage
+  }
+  return getStorage();
+}
+
+// ── Local read/write ──────────────────────────────────────
+
 export function getStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -21,10 +51,7 @@ export function getStorage() {
       return initial;
     }
     const parsed = JSON.parse(raw);
-    // Migrate if needed
-    if (!parsed.version) {
-      parsed.version = VERSION;
-    }
+    if (!parsed.version) parsed.version = VERSION;
     if (!parsed.books) parsed.books = [];
     if (!parsed.highlights) parsed.highlights = [];
     if (!parsed.tags) parsed.tags = [];
@@ -38,12 +65,8 @@ export function getStorage() {
 
 export function saveStorage(data) {
   try {
-    const json = JSON.stringify(data);
-    const bytes = new Blob([json]).size;
-    if (bytes > 4 * 1024 * 1024) {
-      console.warn(`Storage size is ${(bytes / 1024 / 1024).toFixed(2)}MB — approaching localStorage limits`);
-    }
-    localStorage.setItem(STORAGE_KEY, json);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    pushToServer(data);
   } catch (e) {
     console.error('Storage write error:', e);
     if (e.name === 'QuotaExceededError') {
@@ -52,6 +75,8 @@ export function saveStorage(data) {
     throw e;
   }
 }
+
+// ── Books ─────────────────────────────────────────────────
 
 export function addBook(bookData) {
   const store = getStorage();
@@ -77,7 +102,6 @@ export function updateBook(id, updates) {
 
 export function deleteBook(id) {
   const store = getStorage();
-  // Remove all highlights for this book
   store.highlights = store.highlights.filter(h => h.bookId !== id);
   store.books = store.books.filter(b => b.id !== id);
   saveStorage(store);
@@ -87,6 +111,8 @@ export function getBook(id) {
   const store = getStorage();
   return store.books.find(b => b.id === id) || null;
 }
+
+// ── Highlights ────────────────────────────────────────────
 
 export function addHighlight(highlightData) {
   const store = getStorage();
@@ -98,16 +124,11 @@ export function addHighlight(highlightData) {
     isEdited: highlightData.isEdited || false,
   };
   store.highlights.push(highlight);
-
-  // Update book's highlights array
   const bookIdx = store.books.findIndex(b => b.id === highlight.bookId);
   if (bookIdx !== -1) {
-    if (!store.books[bookIdx].highlights) {
-      store.books[bookIdx].highlights = [];
-    }
+    if (!store.books[bookIdx].highlights) store.books[bookIdx].highlights = [];
     store.books[bookIdx].highlights.push(highlight.id);
   }
-
   saveStorage(store);
   return highlight;
 }
@@ -125,63 +146,24 @@ export function deleteHighlight(id) {
   const store = getStorage();
   const highlight = store.highlights.find(h => h.id === id);
   if (!highlight) return;
-
   store.highlights = store.highlights.filter(h => h.id !== id);
-
-  // Remove from book's highlights array
   const bookIdx = store.books.findIndex(b => b.id === highlight.bookId);
   if (bookIdx !== -1) {
     store.books[bookIdx].highlights = (store.books[bookIdx].highlights || []).filter(hid => hid !== id);
   }
-
   saveStorage(store);
 }
 
 export function getHighlights(bookId) {
   const store = getStorage();
-  if (bookId) {
-    return store.highlights.filter(h => h.bookId === bookId);
-  }
+  if (bookId) return store.highlights.filter(h => h.bookId === bookId);
   return store.highlights;
 }
 
-export function exportData() {
-  const store = getStorage();
-  return JSON.stringify(store, null, 2);
-}
-
-export function importData(jsonString) {
-  try {
-    const data = JSON.parse(jsonString);
-    if (!data.books || !data.highlights) {
-      throw new Error('Invalid data format: missing books or highlights');
-    }
-    // Ensure required fields
-    if (!data.version) data.version = VERSION;
-    if (!data.tags) data.tags = [];
-    if (!data.settings) data.settings = { ...DEFAULT_STATE.settings };
-    saveStorage(data);
-    return true;
-  } catch (e) {
-    throw new Error('Failed to import: ' + e.message);
-  }
-}
-
-export function getSettings() {
-  const store = getStorage();
-  return store.settings || DEFAULT_STATE.settings;
-}
-
-export function updateSettings(updates) {
-  const store = getStorage();
-  store.settings = { ...store.settings, ...updates };
-  saveStorage(store);
-  return store.settings;
-}
+// ── Tags ──────────────────────────────────────────────────
 
 export function getAllTags() {
-  const store = getStorage();
-  return store.tags || [];
+  return getStorage().tags || [];
 }
 
 export function addTag(tag) {
@@ -196,50 +178,60 @@ export function addTag(tag) {
 
 export function renameTag(oldTag, newTag) {
   const store = getStorage();
-  // Rename in global tags list
   store.tags = (store.tags || []).map(t => t === oldTag ? newTag : t);
-  // Rename in all books
-  store.books = store.books.map(b => ({
-    ...b,
-    tags: (b.tags || []).map(t => t === oldTag ? newTag : t),
-  }));
-  // Rename in all highlights
-  store.highlights = store.highlights.map(h => ({
-    ...h,
-    tags: (h.tags || []).map(t => t === oldTag ? newTag : t),
-  }));
+  store.books = store.books.map(b => ({ ...b, tags: (b.tags || []).map(t => t === oldTag ? newTag : t) }));
+  store.highlights = store.highlights.map(h => ({ ...h, tags: (h.tags || []).map(t => t === oldTag ? newTag : t) }));
   saveStorage(store);
 }
 
 export function deleteTag(tag) {
   const store = getStorage();
   store.tags = (store.tags || []).filter(t => t !== tag);
-  store.books = store.books.map(b => ({
-    ...b,
-    tags: (b.tags || []).filter(t => t !== tag),
-  }));
-  store.highlights = store.highlights.map(h => ({
-    ...h,
-    tags: (h.tags || []).filter(t => t !== tag),
-  }));
+  store.books = store.books.map(b => ({ ...b, tags: (b.tags || []).filter(t => t !== tag) }));
+  store.highlights = store.highlights.map(h => ({ ...h, tags: (h.tags || []).filter(t => t !== tag) }));
   saveStorage(store);
+}
+
+// ── Settings ──────────────────────────────────────────────
+
+export function getSettings() {
+  return getStorage().settings || DEFAULT_STATE.settings;
+}
+
+export function updateSettings(updates) {
+  const store = getStorage();
+  store.settings = { ...store.settings, ...updates };
+  saveStorage(store);
+  return store.settings;
+}
+
+// ── Misc ──────────────────────────────────────────────────
+
+export function exportData() {
+  return JSON.stringify(getStorage(), null, 2);
+}
+
+export function importData(jsonString) {
+  try {
+    const data = JSON.parse(jsonString);
+    if (!data.books || !data.highlights) throw new Error('Invalid data format');
+    if (!data.version) data.version = VERSION;
+    if (!data.tags) data.tags = [];
+    if (!data.settings) data.settings = { ...DEFAULT_STATE.settings };
+    saveStorage(data);
+    return true;
+  } catch (e) {
+    throw new Error('Failed to import: ' + e.message);
+  }
 }
 
 export function clearAllData() {
   saveStorage({ ...DEFAULT_STATE });
 }
 
-// API key stored separately so it survives clearAllData
 const API_KEY_STORAGE_KEY = 'bookmarks_api_key';
-
-export function getApiKey() {
-  return localStorage.getItem(API_KEY_STORAGE_KEY) || '';
-}
-
+export function getApiKey() { return localStorage.getItem(API_KEY_STORAGE_KEY) || ''; }
 export function saveApiKey(key) {
-  if (key) {
-    localStorage.setItem(API_KEY_STORAGE_KEY, key.trim());
-  } else {
-    localStorage.removeItem(API_KEY_STORAGE_KEY);
-  }
+  if (key) localStorage.setItem(API_KEY_STORAGE_KEY, key.trim());
+  else localStorage.removeItem(API_KEY_STORAGE_KEY);
 }

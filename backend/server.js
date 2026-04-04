@@ -2,50 +2,88 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import Anthropic from '@anthropic-ai/sdk';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
-}));
+// Data file — stored in backend/data/db.json
+const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'data', 'db.json');
 
+const DEFAULT_DATA = {
+  version: 1,
+  books: [],
+  highlights: [],
+  tags: [],
+  settings: { defaultLanguage: 'en', sortOrder: 'dateAdded' },
+};
+
+function readData() {
+  try {
+    if (!fs.existsSync(DATA_FILE)) {
+      fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
+      fs.writeFileSync(DATA_FILE, JSON.stringify(DEFAULT_DATA, null, 2));
+      return { ...DEFAULT_DATA };
+    }
+    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+  } catch (e) {
+    console.error('Failed to read data:', e);
+    return { ...DEFAULT_DATA };
+  }
+}
+
+function writeData(data) {
+  fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+}
+
+app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+// Serve built frontend
+const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+}
+
+// ── Data API ──────────────────────────────────────────────
+
+app.get('/api/data', (req, res) => {
+  res.json(readData());
+});
+
+app.post('/api/data', (req, res) => {
+  try {
+    writeData(req.body);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// ── AI Analysis ───────────────────────────────────────────
+
 app.post('/api/analyze-page', async (req, res) => {
   const { image, language } = req.body;
 
-  if (!image) {
-    return res.status(400).json({ error: 'Image is required' });
-  }
+  if (!image) return res.status(400).json({ error: 'Image is required' });
+  if (!process.env.ANTHROPIC_API_KEY) return res.status(500).json({ error: 'ANTHROPIC_API_KEY is not configured' });
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(500).json({ error: 'ANTHROPIC_API_KEY is not configured' });
-  }
-
-  // Strip data URL prefix if present
   let base64Image = image;
   let mediaType = 'image/jpeg';
-
   if (image.startsWith('data:')) {
     const matches = image.match(/^data:([^;]+);base64,(.+)$/);
-    if (matches) {
-      mediaType = matches[1];
-      base64Image = matches[2];
-    }
+    if (matches) { mediaType = matches[1]; base64Image = matches[2]; }
   }
 
   const isHebrew = language === 'he';
@@ -81,67 +119,46 @@ Return ONLY valid JSON in this exact format, no other text:
 If no right-margin pencil marks are detected, return: {"highlights": []}`;
 
   try {
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const response = await anthropic.messages.create({
       model: 'claude-opus-4-5',
       max_tokens: 4096,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: mediaType,
-                data: base64Image,
-              },
-            },
-            {
-              type: 'text',
-              text: prompt,
-            },
-          ],
-        },
-      ],
+      messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Image } },
+        { type: 'text', text: prompt },
+      ]}],
     });
 
     const textContent = response.content.find(c => c.type === 'text');
-    if (!textContent) {
-      return res.status(500).json({ error: 'No text response from AI' });
-    }
+    if (!textContent) return res.status(500).json({ error: 'No text response from AI' });
 
     let parsed;
     try {
-      // Try to extract JSON from the response
       const jsonMatch = textContent.text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsed = JSON.parse(jsonMatch[0]);
-      } else {
-        parsed = JSON.parse(textContent.text);
-      }
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', textContent.text);
-      return res.status(500).json({ error: 'Failed to parse AI response', raw: textContent.text });
+      parsed = JSON.parse(jsonMatch ? jsonMatch[0] : textContent.text);
+    } catch {
+      return res.status(500).json({ error: 'Failed to parse AI response' });
     }
 
-    if (!parsed.highlights || !Array.isArray(parsed.highlights)) {
-      parsed = { highlights: [] };
-    }
-
+    if (!parsed.highlights || !Array.isArray(parsed.highlights)) parsed = { highlights: [] };
     return res.json(parsed);
   } catch (error) {
     console.error('Anthropic API error:', error);
-    if (error.status === 401) {
-      return res.status(401).json({ error: 'Invalid API key' });
-    }
-    if (error.status === 429) {
-      return res.status(429).json({ error: 'Rate limit exceeded. Please try again later.' });
-    }
+    if (error.status === 401) return res.status(401).json({ error: 'Invalid API key' });
+    if (error.status === 429) return res.status(429).json({ error: 'Rate limit exceeded.' });
     return res.status(500).json({ error: error.message || 'Failed to analyze image' });
   }
 });
 
+// Fallback — serve frontend for all non-API routes
+if (fs.existsSync(frontendDist)) {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
+
 app.listen(PORT, () => {
-  console.log(`BookMarks backend running on http://localhost:${PORT}`);
-  console.log(`API key configured: ${process.env.ANTHROPIC_API_KEY ? 'Yes' : 'No - set ANTHROPIC_API_KEY in .env'}`);
+  console.log(`BookMarks running on port ${PORT}`);
+  console.log(`Data file: ${DATA_FILE}`);
+  console.log(`AI key: ${process.env.ANTHROPIC_API_KEY ? 'configured' : 'NOT SET'}`);
 });

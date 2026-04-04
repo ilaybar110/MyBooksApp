@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { initStorage } from './utils/storage.js';
 import BottomNav from './components/BottomNav.jsx';
 import LibraryPage from './pages/LibraryPage.jsx';
 import AllHighlightsPage from './pages/AllHighlightsPage.jsx';
@@ -15,6 +16,11 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('library');
   const [pageParams, setPageParams] = useState({});
   const [activeTab, setActiveTab] = useState('library');
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    initStorage().then(() => setReady(true));
+  }, []);
 
   const navigate = useCallback((page, params = {}) => {
     setCurrentPage(page);
@@ -52,6 +58,12 @@ export default function App() {
         return <LibraryPage navigate={navigate} />;
     }
   };
+
+  if (!ready) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+      <div style={{ fontFamily: 'sans-serif', color: 'var(--text-muted)', fontSize: '14px' }}>Loading…</div>
+    </div>
+  );
 
   return (
     <div className="page-container bg-[var(--bg-primary)]">
