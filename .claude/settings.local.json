@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh run:*)",
+      "Bash(where gh:*)",
+      "Bash(winget list:*)",
+      "Bash(curl -s \"https://api.github.com/repos/ilaybar110/MyBooksApp/actions/runs?per_page=3\")",
+      "Bash(python -c \"import sys,json; runs=json.load\\(sys.stdin\\)['workflow_runs']; [print\\(r['id'], r['status'], r['conclusion'], r['name']\\) for r in runs]\")",
+      "Bash(curl -s \"https://api.github.com/repos/ilaybar110/MyBooksApp/actions/runs/23984329056/jobs\")",
+      "Bash(python -c ':*)",
+      "Bash(curl -s \"https://api.github.com/repos/ilaybar110/MyBooksApp/actions/runs/23984329056/logs\" -L -o /tmp/logs.zip)",
+      "Bash(node_modules/.bin/vite build:*)",
+      "Bash(npx vite:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://ilaybar110.github.io/\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://ilaybar110.github.io/app.html\")",
+      "Bash(curl -s \"https://api.github.com/repos/ilaybar110/MyBooksApp/pages\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://ilaybar110.github.io/MyBooksApp/app.html\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://ilaybar110.github.io/MyBooksApp/\")",
+      "Bash(curl -I \"https://ilaybar110.github.io/MyBooksApp/\")",
+      "Bash(curl -s \"https://ilaybar110.github.io/MyBooksApp/\")",
+      "Bash(cat \"/c/Users/uhp1m/Desktop/ilays/MyBooksApp/.github/workflows/\"*)"
+    ]
+  }
+}

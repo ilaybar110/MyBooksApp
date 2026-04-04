@@ -12,36 +12,6 @@ const DEFAULT_STATE = {
   },
 };
 
-// ── Server sync ───────────────────────────────────────────
-
-async function pushToServer(data) {
-  try {
-    await fetch('/api/data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-  } catch (e) {
-    // offline or dev without backend — silent fail
-  }
-}
-
-export async function initStorage() {
-  try {
-    const res = await fetch('/api/data');
-    if (res.ok) {
-      const data = await res.json();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      return data;
-    }
-  } catch (e) {
-    // no server — fall back to localStorage
-  }
-  return getStorage();
-}
-
-// ── Local read/write ──────────────────────────────────────
-
 export function getStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -66,7 +36,6 @@ export function getStorage() {
 export function saveStorage(data) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    pushToServer(data);
   } catch (e) {
     console.error('Storage write error:', e);
     if (e.name === 'QuotaExceededError') {
@@ -75,8 +44,6 @@ export function saveStorage(data) {
     throw e;
   }
 }
-
-// ── Books ─────────────────────────────────────────────────
 
 export function addBook(bookData) {
   const store = getStorage();
@@ -111,8 +78,6 @@ export function getBook(id) {
   const store = getStorage();
   return store.books.find(b => b.id === id) || null;
 }
-
-// ── Highlights ────────────────────────────────────────────
 
 export function addHighlight(highlightData) {
   const store = getStorage();
@@ -160,8 +125,6 @@ export function getHighlights(bookId) {
   return store.highlights;
 }
 
-// ── Tags ──────────────────────────────────────────────────
-
 export function getAllTags() {
   return getStorage().tags || [];
 }
@@ -192,8 +155,6 @@ export function deleteTag(tag) {
   saveStorage(store);
 }
 
-// ── Settings ──────────────────────────────────────────────
-
 export function getSettings() {
   return getStorage().settings || DEFAULT_STATE.settings;
 }
@@ -204,8 +165,6 @@ export function updateSettings(updates) {
   saveStorage(store);
   return store.settings;
 }
-
-// ── Misc ──────────────────────────────────────────────────
 
 export function exportData() {
   return JSON.stringify(getStorage(), null, 2);

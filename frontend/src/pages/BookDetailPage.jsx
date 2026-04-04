@@ -338,33 +338,20 @@ export default function BookDetailPage({ navigate, bookId }) {
       <div
         style={{
           padding: '16px 20px',
-          display: 'flex',
-          gap: '12px',
           background: 'var(--bg-primary)',
           borderBottom: '1px solid var(--border)',
         }}
       >
         <button
           className="btn-primary"
-          style={{ flex: 1 }}
-          onClick={() => navigate('add-highlights', { bookId: book.id })}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <polyline points="21 15 16 10 5 21" />
-          </svg>
-          Add Highlights
-        </button>
-        <button
-          style={{ flex: 1, background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '14px', fontWeight: 600 }}
+          style={{ width: '100%' }}
           onClick={() => setShowAddManualModal(true)}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          Type Manually
+          Add Quote
         </button>
       </div>
 
@@ -411,14 +398,14 @@ export default function BookDetailPage({ navigate, bookId }) {
                   <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                 </svg>
               }
-              title="No highlights yet"
-              description="Photograph book pages with pencil lines in the right margin to extract highlights."
+              title="No quotes yet"
+              description="Add your first quote from this book."
               action={
                 <button
                   className="btn-primary"
-                  onClick={() => navigate('add-highlights', { bookId: book.id })}
+                  onClick={() => setShowAddManualModal(true)}
                 >
-                  Add Highlights
+                  Add Quote
                 </button>
               }
             />
