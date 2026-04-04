@@ -17,44 +17,37 @@ export default function Modal({ isOpen, onClose, title, children, footer }) {
 
   return createPortal(
     <>
-      {/* Backdrop */}
+      {/* Backdrop + centering container */}
       <div
-        className="overlay-backdrop"
         onClick={onClose}
-        style={{ zIndex: 50 }}
-      />
-
-      {/* Modal sheet (slides up from bottom) */}
-      <div
-        className="animate-slide-up"
         style={{
           position: 'fixed',
-          bottom: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.45)',
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
+          boxSizing: 'border-box',
+        }}
+      >
+      {/* Modal */}
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
           width: '100%',
           maxWidth: '480px',
           background: 'var(--bg-card)',
-          borderRadius: '20px 20px 0 0',
+          borderRadius: '18px',
           zIndex: 51,
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           maxHeight: '90vh',
           display: 'flex',
           flexDirection: 'column',
           direction: 'ltr',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
         }}
       >
-        {/* Handle */}
-        <div
-          style={{
-            width: '36px',
-            height: '4px',
-            background: 'var(--border)',
-            borderRadius: '2px',
-            margin: '12px auto 0',
-            flexShrink: 0,
-          }}
-        />
 
         {/* Header */}
         <div
@@ -117,6 +110,7 @@ export default function Modal({ isOpen, onClose, title, children, footer }) {
             {footer}
           </div>
         )}
+      </div>
       </div>
     </>,
     document.body

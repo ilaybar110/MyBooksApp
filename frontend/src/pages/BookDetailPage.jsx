@@ -357,8 +357,7 @@ export default function BookDetailPage({ navigate, bookId }) {
           Add Highlights
         </button>
         <button
-          className="btn-secondary"
-          style={{ flex: 1 }}
+          style={{ flex: 1, background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '14px', fontWeight: 600 }}
           onClick={() => setShowAddManualModal(true)}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
