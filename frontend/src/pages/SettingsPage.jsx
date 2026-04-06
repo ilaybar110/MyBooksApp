@@ -12,9 +12,13 @@ import {
   deleteTag,
   getSettings,
   updateSettings,
-  getApiKey,
-  saveApiKey,
 } from '../utils/storage.js';
+import {
+  getGithubToken,
+  saveGithubToken,
+  fetchGistData,
+  pushGistData,
+} from '../utils/gist.js';
 import { formatFileSize, getStorageSize } from '../utils/helpers.js';
 
 export default function SettingsPage({ navigate }) {
@@ -28,22 +32,49 @@ export default function SettingsPage({ navigate }) {
   const [renameValue, setRenameValue] = useState('');
   const [importError, setImportError] = useState(null);
   const [importSuccess, setImportSuccess] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  const [apiKeySaved, setApiKeySaved] = useState(false);
-  const [showApiKey, setShowApiKey] = useState(false);
+  const [githubToken, setGithubToken] = useState('');
+  const [showToken, setShowToken] = useState(false);
+  const [syncStatus, setSyncStatus] = useState(null); // null | 'syncing' | 'ok' | 'error'
+  const [syncError, setSyncError] = useState('');
   const importRef = useRef(null);
 
   useEffect(() => {
     setTags(getAllTags());
     setSettings(getSettings());
     setStorageSize(getStorageSize());
-    setApiKey(getApiKey());
+    setGithubToken(getGithubToken());
   }, []);
 
-  const handleSaveApiKey = () => {
-    saveApiKey(apiKey);
-    setApiKeySaved(true);
-    setTimeout(() => setApiKeySaved(false), 2500);
+  const handleSaveToken = async () => {
+    saveGithubToken(githubToken);
+    if (!githubToken.trim()) {
+      setSyncStatus(null);
+      return;
+    }
+    setSyncStatus('syncing');
+    setSyncError('');
+    try {
+      const { getStorage } = await import('../utils/storage.js');
+      await pushGistData(getStorage());
+      setSyncStatus('ok');
+    } catch (e) {
+      setSyncStatus('error');
+      setSyncError(e.message);
+    }
+  };
+
+  const handleSyncNow = async () => {
+    setSyncStatus('syncing');
+    setSyncError('');
+    try {
+      const data = await fetchGistData();
+      localStorage.setItem('bookmarks_app', JSON.stringify(data));
+      setStorageSize(getStorageSize());
+      setSyncStatus('ok');
+    } catch (e) {
+      setSyncStatus('error');
+      setSyncError(e.message);
+    }
   };
 
   const handleExport = () => {
@@ -233,48 +264,28 @@ export default function SettingsPage({ navigate }) {
           </SettingRow>
         </Section>
 
-        {/* AI / API Key */}
-        <Section title="AI — Gemini API Key">
-          <p
-            style={{
-              fontFamily: 'DM Sans, sans-serif',
-              fontSize: '13px',
-              color: 'var(--text-secondary)',
-              margin: '0 0 12px',
-              lineHeight: 1.5,
-            }}
-          >
-            Your key is stored only on this device and used to extract highlighted text from photos.
+        {/* GitHub Sync */}
+        <Section title="GitHub Sync">
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 12px', lineHeight: 1.5 }}>
+            Sync your books and quotes across all devices using a private GitHub Gist. Enter a GitHub Personal Access Token with <strong>gist</strong> scope.
           </p>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
             <div style={{ flex: 1, position: 'relative' }}>
               <input
-                type={showApiKey ? 'text' : 'password'}
+                type={showToken ? 'text' : 'password'}
                 className="input-field"
-                placeholder="AIza..."
-                value={apiKey}
-                onChange={e => setApiKey(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleSaveApiKey(); }}
+                placeholder="ghp_..."
+                value={githubToken}
+                onChange={e => setGithubToken(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleSaveToken(); }}
                 style={{ fontSize: '13px', paddingRight: '40px', width: '100%', boxSizing: 'border-box' }}
               />
               <button
                 type="button"
-                onClick={() => setShowApiKey(v => !v)}
-                style={{
-                  position: 'absolute',
-                  right: '10px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: 'var(--text-muted)',
-                  padding: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
+                onClick={() => setShowToken(v => !v)}
+                style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'flex', alignItems: 'center' }}
               >
-                {showApiKey ? (
+                {showToken ? (
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
                     <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
@@ -288,23 +299,36 @@ export default function SettingsPage({ navigate }) {
                 )}
               </button>
             </div>
-            <button
-              className="btn-primary"
-              onClick={handleSaveApiKey}
-              style={{ flexShrink: 0, padding: '0 16px' }}
-            >
-              {apiKeySaved ? '✓ Saved' : 'Save'}
+            <button className="btn-primary" onClick={handleSaveToken} style={{ flexShrink: 0, padding: '0 16px' }}>
+              {syncStatus === 'syncing' ? '...' : 'Save'}
             </button>
           </div>
-          {apiKey && (
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#16a34a', margin: 0 }}>
-              API key is set
+
+          {syncStatus === 'ok' && (
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#16a34a', margin: '0 0 10px' }}>
+              Connected — data saved to repo
             </p>
           )}
-          {!apiKey && (
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
-              No key set — you won't be able to process photos until you add one.
+          {syncStatus === 'error' && (
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--danger)', margin: '0 0 10px' }}>
+              {syncError}
             </p>
+          )}
+          {!syncStatus && getGithubToken() && (
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#16a34a', margin: '0 0 10px' }}>
+              Connected
+            </p>
+          )}
+          {!syncStatus && !getGithubToken() && (
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 10px' }}>
+              Not connected — data is only stored on this device.
+            </p>
+          )}
+
+          {getGithubToken() && (
+            <button className="btn-secondary" onClick={handleSyncNow} style={{ width: '100%' }} disabled={syncStatus === 'syncing'}>
+              {syncStatus === 'syncing' ? 'Syncing…' : 'Pull Latest from Repo'}
+            </button>
           )}
         </Section>
 
@@ -564,11 +588,8 @@ export default function SettingsPage({ navigate }) {
             <p style={{ margin: '0 0 6px' }}>
               <strong style={{ color: 'var(--text-primary)', fontFamily: 'Lora, serif' }}>BookMarks</strong> — your personal reading journal
             </p>
-            <p style={{ margin: '0 0 6px' }}>
-              Photograph book pages with pencil lines in the right margin and let AI extract your highlights automatically.
-            </p>
             <p style={{ margin: 0, color: 'var(--text-muted)' }}>
-              All data stored locally on your device.
+              Your personal reading journal — books, highlights, and quotes in one place.
             </p>
           </div>
         </Section>

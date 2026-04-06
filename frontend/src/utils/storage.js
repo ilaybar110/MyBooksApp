@@ -1,5 +1,16 @@
+import { getGithubToken, pushGistData } from './gist.js';
+
 const STORAGE_KEY = 'bookmarks_app';
 const VERSION = 1;
+
+let _pushTimer = null;
+function schedulePush(data) {
+  if (!getGithubToken()) return;
+  clearTimeout(_pushTimer);
+  _pushTimer = setTimeout(() => {
+    pushGistData(data).catch(e => console.warn('Gist sync failed:', e));
+  }, 2000);
+}
 
 const DEFAULT_STATE = {
   version: VERSION,
@@ -36,6 +47,7 @@ export function getStorage() {
 export function saveStorage(data) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    schedulePush(data);
   } catch (e) {
     console.error('Storage write error:', e);
     if (e.name === 'QuotaExceededError') {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getStorage, saveStorage } from '../utils/storage.js';
+import { getGithubToken, fetchGistData } from '../utils/gist.js';
 
 /**
  * Hook for reading/subscribing to the localStorage state.
@@ -7,9 +8,24 @@ import { getStorage, saveStorage } from '../utils/storage.js';
  */
 export function useStorage() {
   const [store, setStore] = useState(() => getStorage());
+  const [syncing, setSyncing] = useState(false);
 
   const refresh = useCallback(() => {
     setStore(getStorage());
+  }, []);
+
+  // Pull from repo on mount if configured
+  useEffect(() => {
+    const token = getGithubToken();
+    if (!token) return;
+    setSyncing(true);
+    fetchGistData()
+      .then(data => {
+        localStorage.setItem('bookmarks_app', JSON.stringify(data));
+        setStore(data);
+      })
+      .catch(e => console.warn('Gist pull failed:', e))
+      .finally(() => setSyncing(false));
   }, []);
 
   useEffect(() => {
@@ -31,7 +47,7 @@ export function useStorage() {
     };
   }, [refresh]);
 
-  return { store, refresh };
+  return { store, refresh, syncing };
 }
 
 /**
