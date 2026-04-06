@@ -13,7 +13,7 @@ import {
   getAllTags,
   addTag,
 } from '../utils/storage.js';
-import { fileToBase64, compressImage } from '../utils/helpers.js';
+import { fileToBase64, compressImage, isHebrew } from '../utils/helpers.js';
 
 export default function BookDetailPage({ navigate, bookId }) {
   const [book, setBook] = useState(null);
@@ -151,6 +151,9 @@ export default function BookDetailPage({ navigate, bookId }) {
   });
 
   if (!book) return null;
+
+  const bookRtl = ['he', 'ar', 'fa', 'ur'].includes(book.language) || isHebrew(book.title) || isHebrew(book.author);
+  const bookDir = bookRtl ? 'rtl' : 'ltr';
 
   const favoriteCount = highlights.filter(h => h.isFavorite).length;
 
@@ -489,6 +492,7 @@ export default function BookDetailPage({ navigate, bookId }) {
               onChange={e => setManualDraft(d => ({ ...d, markedText: e.target.value }))}
               rows={5}
               autoFocus
+              dir={bookDir}
               placeholder="Paste or type the quote here..."
               style={{
                 width: '100%',
@@ -503,6 +507,7 @@ export default function BookDetailPage({ navigate, bookId }) {
                 resize: 'vertical',
                 outline: 'none',
                 boxSizing: 'border-box',
+                textAlign: bookRtl ? 'right' : 'left',
               }}
             />
           </div>
@@ -525,6 +530,7 @@ export default function BookDetailPage({ navigate, bookId }) {
               value={manualDraft.fullContext}
               onChange={e => setManualDraft(d => ({ ...d, fullContext: e.target.value }))}
               rows={3}
+              dir={bookDir}
               placeholder="Surrounding passage for additional context..."
               style={{
                 width: '100%',
@@ -539,6 +545,7 @@ export default function BookDetailPage({ navigate, bookId }) {
                 resize: 'vertical',
                 outline: 'none',
                 boxSizing: 'border-box',
+                textAlign: bookRtl ? 'right' : 'left',
               }}
             />
           </div>
