@@ -267,7 +267,7 @@ export default function SettingsPage({ navigate }) {
         {/* GitHub Sync */}
         <Section title="GitHub Sync">
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 12px', lineHeight: 1.5 }}>
-            Sync your books and quotes across all devices using a private GitHub Gist. Enter a GitHub Personal Access Token with <strong>gist</strong> scope.
+            Sync your books and quotes across devices. Enter a GitHub Personal Access Token with <strong>repo</strong> scope (or <strong>public_repo</strong> for public repos).
           </p>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
             <div style={{ flex: 1, position: 'relative' }}>
