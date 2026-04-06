@@ -449,7 +449,7 @@ export default function BookDetailPage({ navigate, bookId }) {
         }}
         title="Add Quote"
         footer={
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', direction: 'ltr' }}>
             <button
               className="btn-secondary"
               style={{ flex: 1 }}
@@ -491,7 +491,6 @@ export default function BookDetailPage({ navigate, bookId }) {
               value={manualDraft.markedText}
               onChange={e => setManualDraft(d => ({ ...d, markedText: e.target.value }))}
               rows={5}
-              autoFocus
               dir={bookDir}
               placeholder="Paste or type the quote here..."
               style={{

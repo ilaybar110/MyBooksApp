@@ -4,12 +4,26 @@ import { createPortal } from 'react-dom';
 export default function Modal({ isOpen, onClose, title, children, footer }) {
   useEffect(() => {
     if (isOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
     } else {
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
       document.body.style.overflow = '';
+      if (scrollY) window.scrollTo(0, -parseFloat(scrollY));
     }
     return () => {
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
       document.body.style.overflow = '';
+      if (scrollY) window.scrollTo(0, -parseFloat(scrollY));
     };
   }, [isOpen]);
 
@@ -41,7 +55,7 @@ export default function Modal({ isOpen, onClose, title, children, footer }) {
           background: 'var(--bg-card)',
           borderRadius: '18px',
           zIndex: 51,
-          maxHeight: '90vh',
+          maxHeight: '90dvh',
           display: 'flex',
           flexDirection: 'column',
           direction: 'ltr',
