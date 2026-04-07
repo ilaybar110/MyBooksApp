@@ -1,14 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import BookCard from '../components/BookCard.jsx';
 import EmptyState from '../components/EmptyState.jsx';
-import { getStorage } from '../utils/storage.js';
-import { sortBooks } from '../utils/helpers.js';
+import { getStorage, getHighlights } from '../utils/storage.js';
+import { sortBooks, isHebrew, getTextDirection } from '../utils/helpers.js';
 
 export default function LibraryPage({ navigate }) {
   const [books, setBooks] = useState([]);
   const [highlights, setHighlights] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('dateAdded');
+  const [debouncedQ, setDebouncedQ] = useState('');
+  const [hotd, setHotd] = useState(null);
+  const debRef = useRef(null);
 
   const loadData = useCallback(() => {
     const store = getStorage();
@@ -33,13 +36,30 @@ export default function LibraryPage({ navigate }) {
     return () => document.removeEventListener('visibilitychange', handler);
   }, [loadData]);
 
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const stored = (() => { try { return JSON.parse(localStorage.getItem('hotd') || '{}'); } catch { return {}; } })();
+    if (stored.date === today && stored.id) {
+      const all = getHighlights();
+      const found = all.find(h => h.id === stored.id);
+      if (found) { setHotd(found); return; }
+    }
+    const all = getHighlights();
+    if (!all.length) return;
+    const favs = all.filter(h => h.isFavorite);
+    const pool = favs.length ? favs : all;
+    const picked = pool[Math.floor(Math.random() * pool.length)];
+    localStorage.setItem('hotd', JSON.stringify({ date: today, id: picked.id }));
+    setHotd(picked);
+  }, []);
+
   const getHighlightCount = (bookId) =>
     highlights.filter(h => h.bookId === bookId).length;
 
-  const filteredBooks = sortBooks(
+  const filteredBooks = useMemo(() => sortBooks(
     books.filter(book => {
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
+      if (!debouncedQ.trim()) return true;
+      const q = debouncedQ.toLowerCase();
       return (
         book.title?.toLowerCase().includes(q) ||
         book.author?.toLowerCase().includes(q) ||
@@ -47,7 +67,7 @@ export default function LibraryPage({ navigate }) {
       );
     }),
     sortOrder
-  );
+  ), [books, debouncedQ, sortOrder]);
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
@@ -96,6 +116,7 @@ export default function LibraryPage({ navigate }) {
           </div>
           <button
             onClick={() => navigate('add-book')}
+            aria-label="Add new book"
             className="btn-primary"
             style={{ padding: '10px 16px', fontSize: '14px' }}
           >
@@ -127,7 +148,7 @@ export default function LibraryPage({ navigate }) {
               className="input-field"
               placeholder="Search books..."
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => { setSearchQuery(e.target.value); clearTimeout(debRef.current); debRef.current = setTimeout(() => setDebouncedQ(e.target.value), 150); }}
               style={{ paddingLeft: '36px' }}
             />
           </div>
@@ -140,6 +161,7 @@ export default function LibraryPage({ navigate }) {
             <option value="dateAdded">Newest</option>
             <option value="title">Title</option>
             <option value="author">Author</option>
+            <option value="rating">Rating</option>
           </select>
         </div>
 
@@ -149,6 +171,15 @@ export default function LibraryPage({ navigate }) {
 
       {/* Books grid */}
       <div style={{ padding: '20px' }}>
+        {hotd && highlights.length > 0 && (
+          <div style={{ marginBottom: '18px', padding: '14px 16px', background: 'rgba(196,147,58,0.06)', borderLeft: '3px solid #C4933A', borderRadius: '8px' }}>
+            <p style={{ margin: '0 0 6px', fontSize: '10px', fontWeight: 700, color: '#C4933A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Highlight of the Day</p>
+            <p style={{ margin: '0 0 8px', fontSize: '14px', lineHeight: 1.65, color: 'var(--text-primary)', direction: getTextDirection(hotd.markedText), textAlign: isHebrew(hotd.markedText) ? 'right' : 'left', fontFamily: isHebrew(hotd.markedText) ? 'serif' : undefined }}>{hotd.markedText}</p>
+            <button onClick={() => { const b = books.find(x => x.id === hotd.bookId); if (b) navigate('book-detail', { bookId: b.id }); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '12px', color: 'var(--accent-primary)', fontFamily: 'DM Sans, sans-serif', fontWeight: 500 }}>
+              {(() => { const b = books.find(x => x.id === hotd.bookId); return b ? `— ${b.title}` : ''; })()}
+            </button>
+          </div>
+        )}
         {filteredBooks.length === 0 ? (
           searchQuery ? (
             <EmptyState
@@ -165,12 +196,12 @@ export default function LibraryPage({ navigate }) {
             <EmptyState
               icon={
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
                 </svg>
               }
-              title="Your library is empty"
-              description="Add your first book to start collecting highlights from your reading."
+              title="Photograph your first marked page"
+              description="Take a photo of a book page with pencil marks — AI will extract your highlights automatically."
               action={
                 <button className="btn-primary" onClick={() => navigate('add-book')}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

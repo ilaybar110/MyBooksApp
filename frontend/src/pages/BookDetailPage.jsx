@@ -334,6 +334,39 @@ export default function BookDetailPage({ navigate, bookId }) {
               </span>
             )}
           </div>
+          {/* Status selector */}
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginTop: '10px', marginBottom: '6px' }}>
+            {[
+              { v: 'reading', l: 'Reading', c: '#2563eb' },
+              { v: 'finished', l: 'Finished', c: '#16a34a' },
+              { v: 'want-to-read', l: 'Want to Read', c: '#9333ea' },
+              { v: 'abandoned', l: 'Abandoned', c: '#6b7280' },
+            ].map(s => (
+              <button
+                key={s.v}
+                onClick={() => { const updated = updateBook(book.id, { status: book.status === s.v ? null : s.v }); if (updated) setBook(updated); }}
+                style={{ border: `1.5px solid ${book.status === s.v ? s.c : 'var(--border)'}`, borderRadius: '20px', padding: '3px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', background: book.status === s.v ? s.c : 'transparent', color: book.status === s.v ? 'white' : 'var(--text-secondary)', fontFamily: 'DM Sans, sans-serif', transition: 'all 200ms' }}
+              >
+                {s.l}
+              </button>
+            ))}
+          </div>
+          {/* Star rating */}
+          <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+            {[1, 2, 3, 4, 5].map(n => (
+              <button
+                key={n}
+                onClick={() => { const updated = updateBook(book.id, { rating: book.rating === n ? null : n }); if (updated) setBook(updated); }}
+                aria-label={`Rate ${n} star${n > 1 ? 's' : ''}`}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: book.rating >= n ? '#C4933A' : 'var(--border)', display: 'flex', alignItems: 'center' }}
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill={book.rating >= n ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              </button>
+            ))}
+            {book.rating && <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: '4px' }}>{book.rating}/5</span>}
+          </div>
         </div>
       </div>
 

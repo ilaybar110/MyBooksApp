@@ -62,6 +62,7 @@ export function addBook(bookData) {
   const book = {
     ...bookData,
     dateAdded: bookData.dateAdded || new Date().toISOString(),
+    updatedAt: bookData.updatedAt || Date.now(),
     highlights: bookData.highlights || [],
     tags: bookData.tags || [],
   };
@@ -74,7 +75,7 @@ export function updateBook(id, updates) {
   const store = getStorage();
   const idx = store.books.findIndex(b => b.id === id);
   if (idx === -1) return null;
-  store.books[idx] = { ...store.books[idx], ...updates };
+  store.books[idx] = { ...store.books[idx], ...updates, updatedAt: Date.now() };
   saveStorage(store);
   return store.books[idx];
 }
@@ -99,6 +100,7 @@ export function addHighlight(highlightData) {
     isFavorite: highlightData.isFavorite || false,
     tags: highlightData.tags || [],
     isEdited: highlightData.isEdited || false,
+    updatedAt: Date.now(),
   };
   store.highlights.push(highlight);
   const bookIdx = store.books.findIndex(b => b.id === highlight.bookId);
@@ -114,7 +116,7 @@ export function updateHighlight(id, updates) {
   const store = getStorage();
   const idx = store.highlights.findIndex(h => h.id === id);
   if (idx === -1) return null;
-  store.highlights[idx] = { ...store.highlights[idx], ...updates };
+  store.highlights[idx] = { ...store.highlights[idx], ...updates, updatedAt: Date.now() };
   saveStorage(store);
   return store.highlights[idx];
 }

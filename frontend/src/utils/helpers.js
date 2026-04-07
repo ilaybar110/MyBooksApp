@@ -99,6 +99,8 @@ export function sortBooks(books, sortOrder) {
       return sorted.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
     case 'author':
       return sorted.sort((a, b) => (a.author || '').localeCompare(b.author || ''));
+    case 'rating':
+      return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     case 'dateAdded':
     default:
       return sorted.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));

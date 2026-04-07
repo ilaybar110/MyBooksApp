@@ -71,6 +71,27 @@ export default function BookCard({ book, highlightCount, onClick }) {
             <span className="lang-badge">{book.language.toUpperCase()}</span>
           </div>
         )}
+        {/* Status badge */}
+        {book.status && (
+          <div
+            style={{
+              position: 'absolute',
+              top: book.language ? '32px' : '8px',
+              right: '8px',
+              background: book.status === 'reading' ? '#2563eb' : book.status === 'finished' ? '#16a34a' : book.status === 'want-to-read' ? '#9333ea' : '#6b7280',
+              color: 'white',
+              borderRadius: '4px',
+              padding: '2px 6px',
+              fontSize: '9px',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              lineHeight: 1.4,
+            }}
+          >
+            {book.status === 'want-to-read' ? 'Want' : book.status === 'finished' ? 'Done' : book.status === 'reading' ? 'Reading' : 'Stopped'}
+          </div>
+        )}
       </div>
 
       {/* Info */}

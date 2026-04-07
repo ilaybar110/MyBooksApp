@@ -20,6 +20,7 @@ import {
   pushGistData,
 } from '../utils/gist.js';
 import { formatFileSize, getStorageSize } from '../utils/helpers.js';
+import { showToast } from '../App.jsx';
 
 export default function SettingsPage({ navigate }) {
   const [tags, setTags] = useState([]);
@@ -30,8 +31,6 @@ export default function SettingsPage({ navigate }) {
   const [newTagInput, setNewTagInput] = useState('');
   const [renamingTag, setRenamingTag] = useState(null);
   const [renameValue, setRenameValue] = useState('');
-  const [importError, setImportError] = useState(null);
-  const [importSuccess, setImportSuccess] = useState(false);
   const [githubToken, setGithubToken] = useState('');
   const [showToken, setShowToken] = useState(false);
   const [syncStatus, setSyncStatus] = useState(null); // null | 'syncing' | 'ok' | 'error'
@@ -93,20 +92,17 @@ export default function SettingsPage({ navigate }) {
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setImportError(null);
-    setImportSuccess(false);
 
     const reader = new FileReader();
     reader.onload = (evt) => {
       try {
         importData(evt.target.result);
-        setImportSuccess(true);
         setTags(getAllTags());
         setSettings(getSettings());
         setStorageSize(getStorageSize());
-        setTimeout(() => setImportSuccess(false), 3000);
+        showToast('Data imported successfully.');
       } catch (err) {
-        setImportError(err.message);
+        showToast(err.message, 'error');
       }
     };
     reader.readAsText(file);
@@ -491,39 +487,6 @@ export default function SettingsPage({ navigate }) {
 
         {/* Data management */}
         <Section title="Data">
-          {importError && (
-            <div
-              style={{
-                background: '#fef2f2',
-                border: '1px solid #fecaca',
-                borderRadius: '8px',
-                padding: '10px 14px',
-                marginBottom: '12px',
-                fontFamily: 'DM Sans, sans-serif',
-                fontSize: '13px',
-                color: 'var(--danger)',
-              }}
-            >
-              {importError}
-            </div>
-          )}
-          {importSuccess && (
-            <div
-              style={{
-                background: '#f0fdf4',
-                border: '1px solid #bbf7d0',
-                borderRadius: '8px',
-                padding: '10px 14px',
-                marginBottom: '12px',
-                fontFamily: 'DM Sans, sans-serif',
-                fontSize: '13px',
-                color: '#16a34a',
-              }}
-            >
-              Data imported successfully!
-            </div>
-          )}
-
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <button
               className="btn-secondary"
