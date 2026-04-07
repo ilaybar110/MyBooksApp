@@ -22,8 +22,8 @@
       --t1: #1A1615;
       --t2: #6B5D56;
       --t3: #9E8E86;
-      --ac: #C2651A;
-      --ac2: #A8530E;
+      --ac: #A8530E;
+      --ac2: #8A4409;
       --gold: #C4933A;
       --bd: #E3DCD4;
       --tag: #EAE3D8;
@@ -291,12 +291,12 @@ function ss(data) {
   try { localStorage.setItem(SK, JSON.stringify(data)); }
   catch(e) { if (e.name === 'QuotaExceededError') throw new Error('Storage full. Export and clear data.'); throw e; }
 }
-function addBook(b) { const s=gs(); s.books.push({...b,dateAdded:b.dateAdded||new Date().toISOString(),highlights:b.highlights||[],tags:b.tags||[]}); ss(s); return s.books[s.books.length-1]; }
+function addBook(b) { const s=gs(); s.books.push({...b,dateAdded:b.dateAdded||new Date().toISOString(),highlights:b.highlights||[],tags:b.tags||[],updatedAt:b.updatedAt||Date.now()}); ss(s); return s.books[s.books.length-1]; }
 function getBook(id) { return gs().books.find(b=>b.id===id)||null; }
-function updateBook(id,upd) { const s=gs(); const i=s.books.findIndex(b=>b.id===id); if(i===-1)return null; s.books[i]={...s.books[i],...upd}; ss(s); return s.books[i]; }
+function updateBook(id,upd) { const s=gs(); const i=s.books.findIndex(b=>b.id===id); if(i===-1)return null; s.books[i]={...s.books[i],...upd,updatedAt:Date.now()}; ss(s); return s.books[i]; }
 function deleteBook(id) { const s=gs(); s.highlights=s.highlights.filter(h=>h.bookId!==id); s.books=s.books.filter(b=>b.id!==id); ss(s); }
-function addHighlight(h) { const s=gs(); const nh={...h,dateAdded:h.dateAdded||new Date().toISOString(),isFavorite:h.isFavorite||false,tags:h.tags||[],isEdited:h.isEdited||false}; s.highlights.push(nh); const bi=s.books.findIndex(b=>b.id===h.bookId); if(bi!==-1){if(!s.books[bi].highlights)s.books[bi].highlights=[];s.books[bi].highlights.push(nh.id);} ss(s); return nh; }
-function updateHighlight(id, upd) { const s=gs(); const i=s.highlights.findIndex(h=>h.id===id); if(i===-1)return null; s.highlights[i]={...s.highlights[i],...upd}; ss(s); return s.highlights[i]; }
+function addHighlight(h) { const s=gs(); const nh={...h,dateAdded:h.dateAdded||new Date().toISOString(),isFavorite:h.isFavorite||false,tags:h.tags||[],isEdited:h.isEdited||false,updatedAt:Date.now()}; s.highlights.push(nh); const bi=s.books.findIndex(b=>b.id===h.bookId); if(bi!==-1){if(!s.books[bi].highlights)s.books[bi].highlights=[];s.books[bi].highlights.push(nh.id);} ss(s); return nh; }
+function updateHighlight(id, upd) { const s=gs(); const i=s.highlights.findIndex(h=>h.id===id); if(i===-1)return null; s.highlights[i]={...s.highlights[i],...upd,updatedAt:Date.now()}; ss(s); return s.highlights[i]; }
 function delHighlight(id) { const s=gs(); const h=s.highlights.find(x=>x.id===id); if(!h)return; s.highlights=s.highlights.filter(x=>x.id!==id); const bi=s.books.findIndex(b=>b.id===h.bookId); if(bi!==-1)s.books[bi].highlights=(s.books[bi].highlights||[]).filter(x=>x!==id); ss(s); }
 function getHighlights(bookId) { const s=gs(); return bookId ? s.highlights.filter(h=>h.bookId===bookId) : s.highlights; }
 function getAllTags() { return gs().tags||[]; }
@@ -313,7 +313,7 @@ function saveApiKey(k) { k ? localStorage.setItem(AK,k.trim()) : localStorage.re
 function getStorageSize() { try { return new Blob([localStorage.getItem(SK)||'']).size; } catch { return 0; } }
 
 /* ─── Helpers ─── */
-function genId() { return Math.random().toString(36).slice(2)+Date.now().toString(36); }
+function genId() { return crypto.randomUUID(); }
 function isHeb(t) { return t && /[\u0590-\u05FF]/.test(t); }
 function getDir(t) { return isHeb(t)?'rtl':'ltr'; }
 function truncate(s,n=36) { return s&&s.length>n?s.slice(0,n).trim()+'…':s||''; }
@@ -329,6 +329,7 @@ function sortBooks(books,order) {
   const s=[...books];
   if(order==='title')return s.sort((a,b)=>(a.title||'').localeCompare(b.title||''));
   if(order==='author')return s.sort((a,b)=>(a.author||'').localeCompare(b.author||''));
+  if(order==='rating')return s.sort((a,b)=>(b.rating||0)-(a.rating||0));
   return s.sort((a,b)=>new Date(b.dateAdded)-new Date(a.dateAdded));
 }
 function fileToB64(f) { return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=()=>rej(new Error('Failed to read file'));r.readAsDataURL(f);}); }
@@ -462,11 +463,11 @@ function ConfirmModal({isOpen, onClose, onConfirm, title, message, confirmLabel=
   },[isOpen]);
   if(!isOpen)return null;
   return (
-    <div className="overlay" onClick={onClose}>
+    <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" onClick={onClose}>
       <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
         <div style={{padding:'18px 20px 14px',borderBottom:'1px solid var(--bd)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-          <h2 style={{margin:0,fontSize:17,fontWeight:600,color:'var(--t1)'}}>{title}</h2>
-          <button onClick={onClose} style={{background:'var(--bg2)',border:'none',borderRadius:'50%',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--t2)'}}>
+          <h2 id="confirm-modal-title" style={{margin:0,fontSize:17,fontWeight:600,color:'var(--t1)'}}>{title}</h2>
+          <button onClick={onClose} aria-label="Close dialog" style={{background:'var(--bg2)',border:'none',borderRadius:'50%',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--t2)'}}>
             {IC.x}
           </button>
         </div>
@@ -497,11 +498,12 @@ function EmptyState({icon, title, description, action}) {
 }
 
 /* ─── BookCard ─── */
-function BookCard({book, highlightCount, onClick}) {
+const BookCard = React.memo(function BookCard({book, highlightCount, onClick}) {
   const [hov,setHov]=useState(false);
   return (
     <button
       onClick={onClick}
+      aria-label={book.title}
       onMouseEnter={()=>setHov(true)}
       onMouseLeave={()=>setHov(false)}
       style={{
@@ -518,6 +520,7 @@ function BookCard({book, highlightCount, onClick}) {
             : <div className="cover-ph"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
           }
           {book.language&&<span className="lang" style={{position:'absolute',top:8,right:8}}>{book.language.toUpperCase()}</span>}
+          {book.status&&<span style={{position:'absolute',top:book.language?32:8,right:8,background:book.status==='reading'?'#2563eb':book.status==='finished'?'#16a34a':book.status==='want-to-read'?'#9333ea':'#6b7280',color:'white',borderRadius:5,padding:'2px 6px',fontSize:9,fontWeight:700,letterSpacing:'0.04em',textTransform:'uppercase',lineHeight:1.4}}>{book.status==='want-to-read'?'Want':book.status==='finished'?'Done':book.status==='reading'?'Reading':'Stopped'}</span>}
         </div>
         {/* Info */}
         <div style={{padding:'10px 12px 13px'}}>
@@ -531,10 +534,10 @@ function BookCard({book, highlightCount, onClick}) {
       </div>
     </button>
   );
-}
+});
 
 /* ─── HighlightCard ─── */
-function HighlightCard({highlight, bookTitle, showBookTitle, onFavoriteToggle, onDelete, onEdit, onTagAdd, onTagRemove, allTags=[], navigate}) {
+const HighlightCard = React.memo(function HighlightCard({highlight, bookTitle, showBookTitle, onFavoriteToggle, onDelete, onEdit, onTagAdd, onTagRemove, allTags=[], navigate}) {
   const [showCtx,setShowCtx]=useState(false);
   const [showTagInp,setShowTagInp]=useState(false);
   const [tagInp,setTagInp]=useState('');
@@ -600,6 +603,7 @@ function HighlightCard({highlight, bookTitle, showBookTitle, onFavoriteToggle, o
           </div>
           <button
             onClick={()=>onFavoriteToggle&&onFavoriteToggle(highlight.id,!highlight.isFavorite)}
+            aria-label={highlight.isFavorite?'Remove from favorites':'Add to favorites'}
             style={{background:'none',border:'none',padding:'3px',cursor:'pointer',color:highlight.isFavorite?'var(--gold)':'var(--t3)',flexShrink:0,display:'flex',alignItems:'center',borderRadius:6}}
           >
             {IC.star(highlight.isFavorite)}
@@ -642,14 +646,14 @@ function HighlightCard({highlight, bookTitle, showBookTitle, onFavoriteToggle, o
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',direction:'ltr'}}>
             <span style={{fontSize:11,color:'var(--t3)'}}>{fmtDate(highlight.dateAdded)}{highlight.isEdited&&' · edited'}</span>
             <div style={{display:'flex',gap:2}}>
-              {onEdit&&<button onClick={()=>setIsEditing(true)}
+              {onEdit&&<button onClick={()=>setIsEditing(true)} aria-label="Edit highlight"
                 style={{background:'none',border:'none',padding:'3px 7px',cursor:'pointer',fontSize:11,color:'var(--t3)',display:'flex',alignItems:'center',gap:3,borderRadius:6}}
                 onMouseEnter={e=>e.currentTarget.style.color='var(--ac)'}
                 onMouseLeave={e=>e.currentTarget.style.color='var(--t3)'}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 Edit
               </button>}
-              {onDelete&&<button onClick={()=>setShowDelConfirm(true)}
+              {onDelete&&<button onClick={()=>setShowDelConfirm(true)} aria-label="Delete highlight"
                 style={{background:'none',border:'none',padding:'3px 7px',cursor:'pointer',fontSize:11,color:'var(--t3)',display:'flex',alignItems:'center',gap:3,borderRadius:6}}
                 onMouseEnter={e=>e.currentTarget.style.color='var(--err)'}
                 onMouseLeave={e=>e.currentTarget.style.color='var(--t3)'}>
@@ -672,7 +676,7 @@ function HighlightCard({highlight, bookTitle, showBookTitle, onFavoriteToggle, o
       />
     </>
   );
-}
+});
 
 /* ─── BottomNav ─── */
 function BottomNav({activeTab, navigate}) {
@@ -687,7 +691,7 @@ function BottomNav({activeTab, navigate}) {
         {tabs.map(tab=>{
           const a=activeTab===tab.id;
           return (
-            <button key={tab.id} onClick={()=>navigate(tab.id)}
+            <button key={tab.id} onClick={()=>navigate(tab.id)} aria-label={tab.label} aria-current={a?'page':undefined}
               style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4,border:'none',background:'none',cursor:'pointer',color:a?'var(--ac)':'var(--t3)',transition:'color var(--tr)',padding:'6px 0'}}>
               <div style={{transform:a?'scale(1.05)':'scale(1)',transition:'transform var(--tr)'}}>{tab.icon(a)}</div>
               <span style={{fontSize:10,fontFamily:'Outfit,sans-serif',fontWeight:a?600:400,letterSpacing:'0.02em'}}>{tab.label}</span>
@@ -705,14 +709,34 @@ function LibraryPage({navigate}) {
   const [books,setBooks]=useState([]);
   const [highlights,setHighlights]=useState([]);
   const [q,setQ]=useState('');
+  const [debouncedQ,setDebouncedQ]=useState('');
   const [sort,setSort]=useState('dateAdded');
+  const [hotd,setHotd]=useState(null);
+  const debRef=useRef(null);
 
   const load=useCallback(()=>{const s=gs();setBooks(s.books||[]);setHighlights(s.highlights||[]);},[]);
   useEffect(()=>{load();const h=()=>load();window.addEventListener('focus',h);return()=>window.removeEventListener('focus',h);},[load]);
   useEffect(()=>{const h=()=>{if(!document.hidden)load();};document.addEventListener('visibilitychange',h);return()=>document.removeEventListener('visibilitychange',h);},[load]);
 
+  useEffect(()=>{
+    const today=new Date().toISOString().slice(0,10);
+    const stored=(()=>{try{return JSON.parse(localStorage.getItem('hotd')||'{}');}catch{return {};}})();
+    if(stored.date===today&&stored.id){
+      const all=gs().highlights;
+      const found=all.find(h=>h.id===stored.id);
+      if(found){setHotd(found);return;}
+    }
+    const all=gs().highlights;
+    if(!all.length)return;
+    const favs=all.filter(h=>h.isFavorite);
+    const pool=favs.length?favs:all;
+    const picked=pool[Math.floor(Math.random()*pool.length)];
+    localStorage.setItem('hotd',JSON.stringify({date:today,id:picked.id}));
+    setHotd(picked);
+  },[]);
+
   const hc=(id)=>highlights.filter(h=>h.bookId===id).length;
-  const filtered=sortBooks(books.filter(b=>{if(!q.trim())return true;const lo=q.toLowerCase();return b.title?.toLowerCase().includes(lo)||b.author?.toLowerCase().includes(lo)||(b.tags||[]).some(t=>t.toLowerCase().includes(lo));}),sort);
+  const filtered=React.useMemo(()=>sortBooks(books.filter(b=>{if(!debouncedQ.trim())return true;const lo=debouncedQ.toLowerCase();return b.title?.toLowerCase().includes(lo)||b.author?.toLowerCase().includes(lo)||(b.tags||[]).some(t=>t.toLowerCase().includes(lo));}),sort),[books,debouncedQ,sort]);
 
   return (
     <div style={{minHeight:'100vh',background:'var(--bg)'}}>
@@ -725,7 +749,7 @@ function LibraryPage({navigate}) {
               <h1 style={{margin:0,fontSize:28,fontWeight:700,color:'var(--t1)',letterSpacing:'-0.03em',lineHeight:1.1}}>My Library</h1>
               <p style={{margin:'3px 0 0',fontSize:12,color:'var(--t3)',fontWeight:400}}>{books.length} {books.length===1?'book':'books'}</p>
             </div>
-            <button className="btn btn-p" style={{padding:'0 16px',height:40,fontSize:13}} onClick={()=>navigate('add-book')}>
+            <button className="btn btn-p" style={{padding:'0 16px',height:40,fontSize:13}} onClick={()=>navigate('add-book')} aria-label="Add new book">
               {IC.plus} Add
             </button>
           </div>
@@ -733,12 +757,13 @@ function LibraryPage({navigate}) {
           <div style={{display:'flex',gap:8}}>
             <div style={{flex:1,position:'relative'}}>
               <span style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',color:'var(--t3)',pointerEvents:'none',display:'flex'}}>{IC.search}</span>
-              <input type="search" className="inp" placeholder="Search books…" value={q} onChange={e=>setQ(e.target.value)} style={{paddingLeft:36,height:40}}/>
+              <input type="search" className="inp" placeholder="Search books…" value={q} onChange={e=>{setQ(e.target.value);clearTimeout(debRef.current);debRef.current=setTimeout(()=>setDebouncedQ(e.target.value),150);}} style={{paddingLeft:36,height:40}}/>
             </div>
             <select className="inp" value={sort} onChange={e=>setSort(e.target.value)} style={{width:'auto',height:40,flexShrink:0,paddingRight:24,fontSize:13}}>
               <option value="dateAdded">Newest</option>
               <option value="title">Title A–Z</option>
               <option value="author">Author</option>
+              <option value="rating">Rating</option>
             </select>
           </div>
         </div>
@@ -747,12 +772,21 @@ function LibraryPage({navigate}) {
 
       {/* Content */}
       <div style={{padding:'18px 20px 20px'}} className="pb-nav">
+        {hotd&&highlights.length>0&&(
+          <div className="card fade-up" style={{marginBottom:18,padding:'14px 16px',borderLeft:'3px solid var(--gold)',background:'rgba(196,147,58,0.06)'}}>
+            <p style={{margin:'0 0 6px',fontSize:10,fontWeight:700,color:'var(--gold)',textTransform:'uppercase',letterSpacing:'0.08em'}}>Highlight of the Day</p>
+            <p style={{margin:'0 0 8px',fontSize:14,lineHeight:1.65,color:'var(--t1)',direction:getDir(hotd.markedText),textAlign:isHeb(hotd.markedText)?'right':'left',fontFamily:isHeb(hotd.markedText)?"'Noto Serif Hebrew',serif":undefined}}>{hotd.markedText}</p>
+            <button onClick={()=>{const b=books.find(x=>x.id===hotd.bookId);if(b)navigate('book-detail',{bookId:b.id});}} style={{background:'none',border:'none',padding:0,cursor:'pointer',fontSize:12,color:'var(--ac)',fontFamily:'Outfit,sans-serif',fontWeight:500}}>
+              {(()=>{const b=books.find(x=>x.id===hotd.bookId);return b?`— ${b.title}`:''})()}
+            </button>
+          </div>
+        )}
         {filtered.length===0?(
           q ? <EmptyState icon={IC.search} title="No results" description={`Nothing matched "${q}"`}/>
             : <EmptyState
-                icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>}
-                title="Your library is empty"
-                description="Add your first book to start collecting highlights."
+                icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" strokeWidth="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>}
+                title="Photograph your first marked page"
+                description="Take a photo of a book page with pencil marks — AI will extract your highlights automatically."
                 action={<button className="btn btn-p" onClick={()=>navigate('add-book')}>{IC.plus} Add First Book</button>}
               />
         ) : (
@@ -771,7 +805,9 @@ function AllHighlightsPage({navigate}) {
   const [books,setBooks]=useState([]);
   const [allTags,setAllTags]=useState([]);
   const [q,setQ]=useState('');
+  const [debouncedQ,setDebouncedQ]=useState('');
   const [favOnly,setFavOnly]=useState(false);
+  const debRef=useRef(null);
   const [filterTag,setFilterTag]=useState(null);
   const [filterBook,setFilterBook]=useState(null);
   const [showFilters,setShowFilters]=useState(false);
@@ -782,13 +818,13 @@ function AllHighlightsPage({navigate}) {
 
   const bookTitle=(id)=>books.find(b=>b.id===id)?.title||'Unknown';
 
-  const filtered=([...highlights].sort((a,b)=>new Date(b.dateAdded)-new Date(a.dateAdded))).filter(h=>{
+  const filtered=React.useMemo(()=>([...highlights].sort((a,b)=>new Date(b.dateAdded)-new Date(a.dateAdded))).filter(h=>{
     if(favOnly&&!h.isFavorite)return false;
     if(filterTag&&!(h.tags||[]).includes(filterTag))return false;
     if(filterBook&&h.bookId!==filterBook)return false;
-    if(q.trim()){const lo=q.toLowerCase();return h.markedText?.toLowerCase().includes(lo)||(h.tags||[]).some(t=>t.toLowerCase().includes(lo))||bookTitle(h.bookId).toLowerCase().includes(lo);}
+    if(debouncedQ.trim()){const lo=debouncedQ.toLowerCase();return h.markedText?.toLowerCase().includes(lo)||h.fullContext?.toLowerCase().includes(lo)||(h.tags||[]).some(t=>t.toLowerCase().includes(lo))||bookTitle(h.bookId).toLowerCase().includes(lo);}
     return true;
-  });
+  }),[highlights,favOnly,filterTag,filterBook,debouncedQ,books]);
 
   const activeFilters=[favOnly,filterTag,filterBook].filter(Boolean).length;
 
@@ -809,6 +845,7 @@ function AllHighlightsPage({navigate}) {
             </div>
             <button
               onClick={()=>setShowFilters(v=>!v)}
+              aria-label="Toggle filters"
               style={{background:activeFilters>0?'var(--ac)':'var(--bg2)',border:`1px solid ${activeFilters>0?'var(--ac)':'var(--bd)'}`,borderRadius:10,padding:'0 14px',height:40,fontSize:13,fontFamily:'Outfit,sans-serif',fontWeight:500,cursor:'pointer',display:'flex',alignItems:'center',gap:6,color:activeFilters>0?'#fff':'var(--t2)',transition:'all var(--tr)'}}
             >
               {IC.filter} Filter
@@ -817,7 +854,7 @@ function AllHighlightsPage({navigate}) {
           </div>
           <div style={{position:'relative'}}>
             <span style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',color:'var(--t3)',pointerEvents:'none',display:'flex'}}>{IC.search}</span>
-            <input type="search" className="inp" placeholder="Search highlights…" value={q} onChange={e=>setQ(e.target.value)} style={{paddingLeft:36,height:40}}/>
+            <input type="search" className="inp" placeholder="Search highlights…" value={q} onChange={e=>{setQ(e.target.value);clearTimeout(debRef.current);debRef.current=setTimeout(()=>setDebouncedQ(e.target.value),150);}} style={{paddingLeft:36,height:40}}/>
           </div>
 
           {showFilters&&(
@@ -875,6 +912,8 @@ function BookDetailPage({navigate, bookId}) {
   const [manualDraft,setManualDraft]=useState({markedText:'',fullContext:'',pageNumber:''});
   const [q,setQ]=useState('');
   const coverInputRef=useRef(null);
+  const [summarizing,setSummarizing]=useState(false);
+  const [summary,setSummary]=useState(()=>getBook(bookId)?.aiSummary||null);
 
   const handleCoverChange=async(e)=>{
     const f=e.target.files?.[0]; if(!f)return;
@@ -890,19 +929,49 @@ function BookDetailPage({navigate, bookId}) {
   const load=useCallback(()=>{const b=getBook(bookId);if(!b){navigate('library');return;}setBook(b);setHighlights(getHighlights(bookId));setAllTags(getAllTags());},[bookId,navigate]);
   useEffect(()=>{load();},[load]);
 
+  const doSummarize=async()=>{
+    const k=getApiKey();
+    if(!k){showToast('Add a Gemini API key in Settings first.','error');return;}
+    const hl=getHighlights(bookId);
+    if(!hl.length){showToast('Add some highlights first.','error');return;}
+    setSummarizing(true);
+    const corpus=hl.map((h,i)=>`${i+1}. "${h.markedText}"`).join('\n');
+    const prompt=`The following are passages a reader highlighted in "${book?.title}" by ${book?.author}. Based ONLY on these passages, write a 120-word synthesis of the key ideas the reader found meaningful. Be specific, not generic.\n\n${corpus}`;
+    const body={contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.4,maxOutputTokens:512}};
+    let lastErr=null;
+    for(const model of GM_MODELS){
+      try{
+        const r=await fetch(gemUrl(model,k),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+        if(!r.ok){const e=await r.json().catch(()=>({}));const msg=e.error?.message||'HTTP '+r.status;if(r.status===404||(r.status===429&&msg.includes('limit: 0'))){lastErr=new Error(msg);continue;}throw new Error(msg);}
+        const d=await r.json();
+        const text=d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+        if(text){
+          updateBook(bookId,{aiSummary:text});
+          setSummary(text);
+          setSummarizing(false);
+          return;
+        }
+      }catch(e){lastErr=e;if(!e.message?.includes('404')&&!e.message?.includes('limit: 0'))break;}
+    }
+    setSummarizing(false);
+    showToast(lastErr?.message||'Summary failed. Try again.','error');
+  };
+
   if(!book)return null;
 
-  const favCount=highlights.filter(h=>h.isFavorite).length;
-  const filtered=highlights.filter(h=>{if(!q.trim())return true;const lo=q.toLowerCase();return h.markedText?.toLowerCase().includes(lo)||(h.tags||[]).some(t=>t.toLowerCase().includes(lo));}).sort((a,b)=>new Date(b.dateAdded)-new Date(a.dateAdded));
+  const favCount=React.useMemo(()=>highlights.filter(h=>h.isFavorite).length,[highlights]);
+  const filtered=React.useMemo(()=>highlights.filter(h=>{if(!q.trim())return true;const lo=q.toLowerCase();return h.markedText?.toLowerCase().includes(lo)||h.fullContext?.toLowerCase().includes(lo)||(h.tags||[]).some(t=>t.toLowerCase().includes(lo));}).sort((a,b)=>new Date(b.dateAdded)-new Date(a.dateAdded)),[highlights,q]);
 
   const doFavTog=(id,v)=>{updateHighlight(id,{isFavorite:v});setHighlights(p=>p.map(h=>h.id===id?{...h,isFavorite:v}:h));};
   const doDel=(id)=>{delHighlight(id);setHighlights(p=>p.filter(h=>h.id!==id));};
   const doEdit=(id,upd)=>{updateHighlight(id,upd);setHighlights(p=>p.map(h=>h.id===id?{...h,...upd}:h));};
   const doTagAdd=(hid,t)=>{const h=highlights.find(x=>x.id===hid);if(!h)return;const nt=[...new Set([...(h.tags||[]),t])];updateHighlight(hid,{tags:nt});setHighlights(p=>p.map(x=>x.id===hid?{...x,tags:nt}:x));addTag(t);setAllTags(getAllTags());};
   const doTagRm=(hid,t)=>{const h=highlights.find(x=>x.id===hid);if(!h)return;const nt=(h.tags||[]).filter(x=>x!==t);updateHighlight(hid,{tags:nt});setHighlights(p=>p.map(x=>x.id===hid?{...x,tags:nt}:x));};
+  const bookRtl=['he','ar','fa','ur'].includes(book.language)||isHeb(book.title)||isHeb(book.author);
+  const bookDir=bookRtl?'rtl':'ltr';
   const doAddManual=()=>{
     if(!manualDraft.markedText.trim())return;
-    const nh=addHighlight({id:'h_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),bookId,markedText:manualDraft.markedText.trim(),fullContext:manualDraft.fullContext.trim()||'',pageNumber:manualDraft.pageNumber?Number(manualDraft.pageNumber):null,isFavorite:false,tags:[],isEdited:false});
+    const nh=addHighlight({id:crypto.randomUUID(),bookId,markedText:manualDraft.markedText.trim(),fullContext:manualDraft.fullContext.trim()||'',pageNumber:manualDraft.pageNumber?Number(manualDraft.pageNumber):null,isFavorite:false,tags:[],isEdited:false});
     setHighlights(p=>[nh,...p]);
     setManualDraft({markedText:'',fullContext:'',pageNumber:''});
     setShowAddManual(false);
@@ -913,7 +982,7 @@ function BookDetailPage({navigate, bookId}) {
       {/* Header */}
       <div style={{position:'sticky',top:0,zIndex:10,background:'var(--bg)',borderBottom:'1px solid var(--bd)',padding:'calc(14px + env(safe-area-inset-top,0px)) 20px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <button className="back-btn" onClick={()=>navigate('library')}>{IC.back} Library</button>
-        <button onClick={()=>setShowDel(true)} style={{background:'none',border:'none',cursor:'pointer',color:'var(--t3)',padding:8,display:'flex',alignItems:'center',borderRadius:8}} onMouseEnter={e=>e.currentTarget.style.color='var(--err)'} onMouseLeave={e=>e.currentTarget.style.color='var(--t3)'}>{IC.trash}</button>
+        <button onClick={()=>setShowDel(true)} aria-label="Delete book" style={{background:'none',border:'none',cursor:'pointer',color:'var(--t3)',padding:8,display:'flex',alignItems:'center',borderRadius:8}} onMouseEnter={e=>e.currentTarget.style.color='var(--err)'} onMouseLeave={e=>e.currentTarget.style.color='var(--t3)'}>{IC.trash}</button>
       </div>
 
       {/* Book hero — split layout */}
@@ -938,24 +1007,53 @@ function BookDetailPage({navigate, bookId}) {
         <div style={{flex:1,minWidth:0}}>
           <h1 style={{margin:'0 0 4px',fontSize:19,fontWeight:700,color:'var(--t1)',lineHeight:1.25,letterSpacing:'-0.02em'}}>{book.title}</h1>
           <p style={{margin:'0 0 10px',fontSize:13,color:'var(--t2)'}}>{book.author}</p>
-          <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center',marginBottom:10}}>
             <span className="lang">{(book.language||'en').toUpperCase()}</span>
             <span style={{fontSize:12,color:'var(--t3)'}}>{highlights.length} {highlights.length===1?'highlight':'highlights'}</span>
             {favCount>0&&<span style={{fontSize:12,color:'var(--gold)',display:'flex',alignItems:'center',gap:3}}>{IC.star(true)}{favCount}</span>}
+          </div>
+          {/* Status selector */}
+          <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:8}}>
+            {[{v:'reading',l:'Reading',c:'#2563eb'},{v:'finished',l:'Finished',c:'#16a34a'},{v:'want-to-read',l:'Want to Read',c:'#9333ea'},{v:'abandoned',l:'Abandoned',c:'#6b7280'}].map(s=>(
+              <button key={s.v} onClick={()=>{const updated=updateBook(bookId,{status:book.status===s.v?null:s.v});setBook(updated);}} style={{border:`1.5px solid ${book.status===s.v?s.c:'var(--bd)'}`,borderRadius:20,padding:'3px 10px',fontSize:11,fontWeight:600,cursor:'pointer',background:book.status===s.v?s.c:'transparent',color:book.status===s.v?'white':'var(--t2)',fontFamily:'Outfit,sans-serif',transition:'all var(--tr)'}}>{s.l}</button>
+            ))}
+          </div>
+          {/* Star rating */}
+          <div style={{display:'flex',gap:2,alignItems:'center'}}>
+            {[1,2,3,4,5].map(n=>(
+              <button key={n} onClick={()=>{const updated=updateBook(bookId,{rating:book.rating===n?null:n});setBook(updated);}} style={{background:'none',border:'none',cursor:'pointer',padding:'2px',color:book.rating>=n?'var(--gold)':'var(--bd)',display:'flex',alignItems:'center'}} aria-label={`Rate ${n} star${n>1?'s':''}`}>
+                {IC.star(book.rating>=n)}
+              </button>
+            ))}
+            {book.rating&&<span style={{fontSize:11,color:'var(--t3)',marginLeft:4}}>{book.rating}/5</span>}
           </div>
         </div>
       </div>
 
       {/* Action bar */}
-      <div style={{padding:'14px 20px',borderBottom:'1px solid var(--bd)',display:'flex',gap:10}}>
-        <button className="btn btn-p btn-lg" style={{flex:1}} onClick={()=>navigate('add-highlights',{bookId:book.id})}>
+      <div style={{padding:'14px 20px',borderBottom:'1px solid var(--bd)',display:'flex',gap:10,flexWrap:'wrap'}}>
+        <button className="btn btn-p btn-lg" style={{flex:1,minWidth:130}} onClick={()=>navigate('add-highlights',{bookId:book.id})}>
           {IC.photo} Add via Photo
         </button>
-        <button className="btn btn-lg" style={{flex:1,background:'#2563eb',color:'white'}} onClick={()=>setShowAddManual(true)}>
+        <button className="btn btn-lg" style={{flex:1,minWidth:130,background:'#2563eb',color:'white'}} onClick={()=>setShowAddManual(true)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Type Manually
         </button>
+        {highlights.length>0&&(
+          <button className="btn btn-lg" style={{flex:'0 0 100%',background:'var(--bg2)',border:'1px solid var(--bd)',color:'var(--t2)'}} onClick={doSummarize} disabled={summarizing}>
+            {summarizing?<><Spin dark/> Summarizing…</>:<><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> {summary?'Regenerate Summary':'Summarize with AI'}</>}
+          </button>
+        )}
       </div>
+      {summary&&(
+        <div style={{margin:'0 20px 0',padding:'14px 16px',background:'rgba(196,147,58,0.06)',borderLeft:'3px solid var(--gold)',borderRadius:'0 8px 8px 0',marginTop:14}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+            <p style={{margin:0,fontSize:10,fontWeight:700,color:'var(--gold)',textTransform:'uppercase',letterSpacing:'0.08em'}}>AI Summary</p>
+            <button onClick={()=>{updateBook(bookId,{aiSummary:null});setSummary(null);}} style={{background:'none',border:'none',cursor:'pointer',color:'var(--t3)',padding:2,display:'flex',alignItems:'center'}} aria-label="Clear summary">{IC.x}</button>
+          </div>
+          <p style={{margin:0,fontSize:13,color:'var(--t2)',lineHeight:1.7}}>{summary}</p>
+        </div>
+      )}
 
       {/* Search highlights */}
       {highlights.length>0&&(
@@ -986,11 +1084,11 @@ function BookDetailPage({navigate, bookId}) {
             <div style={{padding:'20px',overflowY:'auto',flex:1,display:'flex',flexDirection:'column',gap:16}}>
               <div>
                 <label style={{display:'block',fontSize:12,fontWeight:600,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>Quote *</label>
-                <textarea autoFocus className="inp" rows={5} placeholder="Type or paste the quote here…" value={manualDraft.markedText} onChange={e=>setManualDraft(d=>({...d,markedText:e.target.value}))} style={{fontFamily:"'Outfit',sans-serif",fontSize:15,lineHeight:1.7}}/>
+                <textarea autoFocus className="inp" rows={5} placeholder="Type or paste the quote here…" value={manualDraft.markedText} onChange={e=>setManualDraft(d=>({...d,markedText:e.target.value}))} dir={bookDir} style={{fontFamily:bookRtl?"'Noto Serif Hebrew',serif":"'Outfit',sans-serif",fontSize:15,lineHeight:1.7,textAlign:bookRtl?'right':'left'}}/>
               </div>
               <div>
                 <label style={{display:'block',fontSize:12,fontWeight:600,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>Context (optional)</label>
-                <textarea className="inp" rows={3} placeholder="Surrounding passage for context…" value={manualDraft.fullContext} onChange={e=>setManualDraft(d=>({...d,fullContext:e.target.value}))} style={{fontSize:13,lineHeight:1.65}}/>
+                <textarea className="inp" rows={3} placeholder="Surrounding passage for context…" value={manualDraft.fullContext} onChange={e=>setManualDraft(d=>({...d,fullContext:e.target.value}))} dir={bookDir} style={{fontSize:13,lineHeight:1.65,textAlign:bookRtl?'right':'left'}}/>
               </div>
               <div>
                 <label style={{display:'block',fontSize:12,fontWeight:600,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>Page Number (optional)</label>
@@ -1402,16 +1500,13 @@ function SettingsPage({navigate}) {
   const [newTag,setNewTag]=useState('');
   const [renamingTag,setRenamingTag]=useState(null);
   const [renameVal,setRenameVal]=useState('');
-  const [importErr,setImportErr]=useState(null);
-  const [importOk,setImportOk]=useState(false);
   const [apiKey,setApiKey]=useState(getApiKey);
-  const [apiSaved,setApiSaved]=useState(false);
   const [showKey,setShowKey]=useState(false);
   const importRef=useRef(null);
 
-  const saveKey=()=>{saveApiKey(apiKey);setApiSaved(true);setTimeout(()=>setApiSaved(false),2500);};
+  const saveKey=()=>{saveApiKey(apiKey);showToast('API key saved');};
   const doExport=()=>{const j=exportData();const b=new Blob([j],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`bookmarks-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);};
-  const doImport=async(e)=>{const f=e.target.files?.[0];if(!f)return;setImportErr(null);setImportOk(false);const r=new FileReader();r.onload=ev=>{try{importData(ev.target.result);setImportOk(true);setTags(getAllTags());setSettings(getSettings());setSz(getStorageSize());setTimeout(()=>setImportOk(false),3000);}catch(er){setImportErr(er.message);}};r.readAsText(f);e.target.value='';};
+  const doImport=async(e)=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{importData(ev.target.result);setTags(getAllTags());setSettings(getSettings());setSz(getStorageSize());showToast('Data imported successfully.');}catch(er){showToast(er.message,'error');}};r.readAsText(f);e.target.value='';};
   const doClear=()=>{clearAllData();setTags([]);setSz(getStorageSize());};
   const doAddTag=()=>{const t=newTag.trim();if(t){addTag(t);setTags(getAllTags());setNewTag('');}};
   const doRename=()=>{if(!renamingTag||!renameVal.trim())return;renameTag(renamingTag,renameVal.trim());setTags(getAllTags());setRenamingTag(null);setRenameVal('');};
@@ -1468,7 +1563,7 @@ function SettingsPage({navigate}) {
                 </button>
               </div>
               <button className="btn btn-p" style={{flexShrink:0,padding:'0 16px',height:40,fontSize:13}} onClick={saveKey}>
-                {apiSaved?<>{IC.check} Saved</>:'Save'}
+                Save
               </button>
             </div>
             {apiKey
@@ -1514,8 +1609,6 @@ function SettingsPage({navigate}) {
         <p className="section-label">Data</p>
         <div className="settings-card" style={{marginBottom:22}}>
           <div style={{padding:'14px 16px',display:'flex',flexDirection:'column',gap:10}}>
-            {importErr&&<div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 12px',fontSize:13,color:'var(--err)'}}>{importErr}</div>}
-            {importOk&&<div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'10px 12px',fontSize:13,color:'#16a34a'}}>Data imported successfully.</div>}
             <button className="btn btn-s btn-w" onClick={doExport}>{IC.export} Export as JSON</button>
             <label htmlFor="imp-in" className="btn btn-s btn-w" style={{cursor:'pointer'}}>{IC.import} Import from JSON</label>
             <input id="imp-in" ref={importRef} type="file" accept=".json,application/json" onChange={doImport} style={{display:'none'}}/>
@@ -1535,6 +1628,33 @@ function SettingsPage({navigate}) {
       </div>
 
       <ConfirmModal isOpen={showClear} onClose={()=>setShowClear(false)} onConfirm={doClear} title="Clear All Data" message="This will permanently delete all books, highlights, and settings. Consider exporting first." confirmLabel="Clear Everything" danger/>
+    </div>
+  );
+}
+
+/* ─── Toast / Snackbar ─── */
+const _toastQ=[];
+let _toastSetter=null;
+function showToast(msg,type='success',duration=3000){
+  if(_toastSetter){_toastSetter(p=>[...p,{id:crypto.randomUUID(),msg,type,duration}]);}
+}
+function ToastContainer(){
+  const [toasts,setToasts]=useState([]);
+  useEffect(()=>{_toastSetter=setToasts;return()=>{_toastSetter=null;};},[]);
+  useEffect(()=>{
+    if(!toasts.length)return;
+    const t=toasts[toasts.length-1];
+    const timer=setTimeout(()=>setToasts(p=>p.filter(x=>x.id!==t.id)),t.duration);
+    return()=>clearTimeout(timer);
+  },[toasts]);
+  if(!toasts.length)return null;
+  return(
+    <div style={{position:'fixed',bottom:'calc(76px + env(safe-area-inset-bottom,0px))',left:'50%',transform:'translateX(-50%)',zIndex:200,display:'flex',flexDirection:'column',gap:8,alignItems:'center',width:'calc(100% - 40px)',maxWidth:440,pointerEvents:'none'}}>
+      {toasts.map(t=>(
+        <div key={t.id} className="slide-up" style={{background:t.type==='error'?'var(--err)':'#1a1615',color:'white',borderRadius:10,padding:'11px 16px',fontSize:13,fontWeight:500,boxShadow:'0 4px 16px rgba(26,22,21,0.25)',display:'flex',alignItems:'center',gap:8,width:'100%',pointerEvents:'auto'}}>
+          {t.type==='error'?IC.err:IC.check} {t.msg}
+        </div>
+      ))}
     </div>
   );
 }
@@ -1572,6 +1692,7 @@ function App() {
         {render()}
       </main>
       <BottomNav activeTab={tab} navigate={navigate}/>
+      <ToastContainer/>
     </div>
   );
 }
