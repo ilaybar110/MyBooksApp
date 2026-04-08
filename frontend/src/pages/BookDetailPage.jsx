@@ -12,8 +12,16 @@ import {
   addHighlight,
   getAllTags,
   addTag,
+  getApiKey,
 } from '../utils/storage.js';
 import { fileToBase64, compressImage, isHebrew } from '../utils/helpers.js';
+import { showToast } from '../App.jsx';
+
+const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
+const GEMINI_API_VERSION = 'v1beta';
+function geminiUrl(model, apiKey) {
+  return `https://generativelanguage.googleapis.com/${GEMINI_API_VERSION}/models/${model}:generateContent?key=${apiKey}`;
+}
 
 export default function BookDetailPage({ navigate, bookId }) {
   const [book, setBook] = useState(null);
@@ -24,6 +32,8 @@ export default function BookDetailPage({ navigate, bookId }) {
   const [showAddManualModal, setShowAddManualModal] = useState(false);
   const [manualDraft, setManualDraft] = useState({ markedText: '', fullContext: '', pageNumber: '' });
   const [searchQuery, setSearchQuery] = useState('');
+  const [summarizing, setSummarizing] = useState(false);
+  const [summary, setSummary] = useState(null);
   const [editBookDraft, setEditBookDraft] = useState(null);
   const [editBookCoverPreview, setEditBookCoverPreview] = useState(null);
 
@@ -41,6 +51,46 @@ export default function BookDetailPage({ navigate, bookId }) {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    if (book?.aiSummary) setSummary(book.aiSummary);
+  }, [book?.aiSummary]);
+
+  const handleSummarize = async () => {
+    const apiKey = getApiKey();
+    if (!apiKey) { showToast('Add a Gemini API key in Settings first.', 'error'); return; }
+    const hl = getHighlights(bookId);
+    if (!hl.length) { showToast('Add some highlights first.', 'error'); return; }
+    setSummarizing(true);
+    const corpus = hl.map((h, i) => `${i + 1}. "${h.markedText}"`).join('\n');
+    const prompt = `The following are passages a reader highlighted in "${book?.title}" by ${book?.author}. Based ONLY on these passages, write a 120-word synthesis of the key ideas the reader found meaningful. Be specific, not generic.\n\n${corpus}`;
+    const body = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.4, maxOutputTokens: 512 } };
+    let lastErr = null;
+    for (const model of GEMINI_MODELS) {
+      try {
+        const r = await fetch(geminiUrl(model, apiKey), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        if (!r.ok) {
+          const e = await r.json().catch(() => ({}));
+          const msg = e.error?.message || 'HTTP ' + r.status;
+          if (r.status === 404 || (r.status === 429 && msg.includes('limit: 0'))) { lastErr = new Error(msg); continue; }
+          throw new Error(msg);
+        }
+        const d = await r.json();
+        const text = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        if (text) {
+          updateBook(bookId, { aiSummary: text });
+          setSummary(text);
+          setSummarizing(false);
+          return;
+        }
+      } catch (e) {
+        lastErr = e;
+        if (!e.message?.includes('404') && !e.message?.includes('limit: 0')) break;
+      }
+    }
+    setSummarizing(false);
+    showToast(lastErr?.message || 'Summary failed. Try again.', 'error');
+  };
 
   const handleFavoriteToggle = (id, isFavorite) => {
     updateHighlight(id, { isFavorite });
@@ -376,6 +426,9 @@ export default function BookDetailPage({ navigate, bookId }) {
           padding: '16px 20px',
           background: 'var(--bg-primary)',
           borderBottom: '1px solid var(--border)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
         }}
       >
         <button
@@ -389,7 +442,41 @@ export default function BookDetailPage({ navigate, bookId }) {
           </svg>
           Add Quote
         </button>
+        {highlights.length > 0 && (
+          <button
+            className="btn-secondary"
+            style={{ width: '100%' }}
+            onClick={handleSummarize}
+            disabled={summarizing}
+          >
+            {summarizing ? (
+              '⏳ Summarizing…'
+            ) : (
+              <>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+                </svg>
+                {summary ? 'Regenerate AI Summary' : 'Summarize with AI'}
+              </>
+            )}
+          </button>
+        )}
       </div>
+      {summary && (
+        <div style={{ margin: '14px 20px 0', padding: '14px 16px', background: 'rgba(196,147,58,0.06)', borderLeft: '3px solid #C4933A', borderRadius: '0 8px 8px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <p style={{ margin: 0, fontSize: '10px', fontWeight: 700, color: '#C4933A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>AI Summary</p>
+            <button
+              onClick={() => { updateBook(bookId, { aiSummary: null }); setSummary(null); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '2px', display: 'flex', alignItems: 'center' }}
+              aria-label="Clear summary"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.7 }}>{summary}</p>
+        </div>
+      )}
 
       {/* Search highlights */}
       {highlights.length > 0 && (
