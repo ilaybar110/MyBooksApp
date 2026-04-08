@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import HighlightCard from '../components/HighlightCard.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import TagPill from '../components/TagPill.jsx';
@@ -16,7 +16,9 @@ export default function AllHighlightsPage({ navigate }) {
   const [books, setBooks] = useState([]);
   const [allTags, setAllTags] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [filterFavorites, setFilterFavorites] = useState(false);
+  const debRef = useRef(null);
   const [filterTag, setFilterTag] = useState(null);
   const [filterBookId, setFilterBookId] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -76,13 +78,13 @@ export default function AllHighlightsPage({ navigate }) {
     setHighlights(prev => prev.map(h => h.id === id ? { ...h, ...updates } : h));
   };
 
-  const filtered = sortHighlights(
+  const filtered = useMemo(() => sortHighlights(
     highlights.filter(h => {
       if (filterFavorites && !h.isFavorite) return false;
       if (filterTag && !(h.tags || []).includes(filterTag)) return false;
       if (filterBookId && h.bookId !== filterBookId) return false;
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
+      if (debouncedQuery.trim()) {
+        const q = debouncedQuery.toLowerCase();
         return (
           h.markedText?.toLowerCase().includes(q) ||
           h.fullContext?.toLowerCase().includes(q) ||
@@ -92,7 +94,7 @@ export default function AllHighlightsPage({ navigate }) {
       }
       return true;
     })
-  );
+  ), [highlights, filterFavorites, filterTag, filterBookId, debouncedQuery, books]);
 
   const activeFilterCount = [filterFavorites, filterTag, filterBookId].filter(Boolean).length;
 
@@ -142,6 +144,7 @@ export default function AllHighlightsPage({ navigate }) {
           </div>
           <button
             onClick={() => setShowFilters(v => !v)}
+            aria-label="Toggle filters"
             style={{
               background: activeFilterCount > 0 ? 'var(--accent-primary)' : 'var(--bg-secondary)',
               border: '1px solid ' + (activeFilterCount > 0 ? 'var(--accent-primary)' : 'var(--border)'),
@@ -202,7 +205,7 @@ export default function AllHighlightsPage({ navigate }) {
             className="input-field"
             placeholder="Search highlights..."
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={e => { setSearchQuery(e.target.value); clearTimeout(debRef.current); debRef.current = setTimeout(() => setDebouncedQuery(e.target.value), 150); }}
             style={{ paddingLeft: '36px' }}
           />
         </div>
