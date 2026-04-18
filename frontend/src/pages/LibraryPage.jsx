@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import BookCard from '../components/BookCard.jsx';
 import EmptyState from '../components/EmptyState.jsx';
+import DailyCarousel from '../components/DailyCarousel.jsx';
 import { getStorage, getHighlights } from '../utils/storage.js';
 import { sortBooks, isHebrew, getTextDirection } from '../utils/helpers.js';
 
@@ -10,7 +11,7 @@ export default function LibraryPage({ navigate }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('dateAdded');
   const [debouncedQ, setDebouncedQ] = useState('');
-  const [hotd, setHotd] = useState(null);
+  const [dailyHighlights, setDailyHighlights] = useState([]);
   const debRef = useRef(null);
 
   const loadData = useCallback(() => {
@@ -38,19 +39,21 @@ export default function LibraryPage({ navigate }) {
 
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
-    const stored = (() => { try { return JSON.parse(localStorage.getItem('hotd') || '{}'); } catch { return {}; } })();
-    if (stored.date === today && stored.id) {
-      const all = getHighlights();
-      const found = all.find(h => h.id === stored.id);
-      if (found) { setHotd(found); return; }
-    }
+    const stored = (() => { try { return JSON.parse(localStorage.getItem('hotd5') || '{}'); } catch { return {}; } })();
     const all = getHighlights();
     if (!all.length) return;
+
+    if (stored.date === today && Array.isArray(stored.ids) && stored.ids.length) {
+      const found = stored.ids.map(id => all.find(h => h.id === id)).filter(Boolean);
+      if (found.length) { setDailyHighlights(found); return; }
+    }
+
     const favs = all.filter(h => h.isFavorite);
-    const pool = favs.length ? favs : all;
-    const picked = pool[Math.floor(Math.random() * pool.length)];
-    localStorage.setItem('hotd', JSON.stringify({ date: today, id: picked.id }));
-    setHotd(picked);
+    const pool = favs.length >= 5 ? favs : all;
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    const picked = shuffled.slice(0, 5);
+    localStorage.setItem('hotd5', JSON.stringify({ date: today, ids: picked.map(h => h.id) }));
+    setDailyHighlights(picked);
   }, []);
 
   const getHighlightCount = (bookId) =>
@@ -171,23 +174,8 @@ export default function LibraryPage({ navigate }) {
 
       {/* Books grid */}
       <div style={{ padding: '20px' }}>
-        {hotd && highlights.length > 0 && (
-          <div
-            onClick={() => navigate('highlights', { highlightId: hotd.id })}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate('highlights', { highlightId: hotd.id }); }}
-            role="button"
-            tabIndex={0}
-            aria-label="View highlight of the day in highlights section"
-            style={{ marginBottom: '18px', padding: '14px 16px', background: 'rgba(196,147,58,0.06)', borderLeft: '3px solid #C4933A', borderRadius: '8px', cursor: 'pointer', transition: 'opacity 150ms' }}
-          >
-            <p style={{ margin: '0 0 6px', fontSize: '10px', fontWeight: 700, color: '#C4933A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Highlight of the Day</p>
-            <p style={{ margin: '0 0 8px', fontSize: '14px', lineHeight: 1.65, color: 'var(--text-primary)', direction: getTextDirection(hotd.markedText), textAlign: isHebrew(hotd.markedText) ? 'right' : 'left', fontFamily: isHebrew(hotd.markedText) ? 'serif' : undefined }}>{hotd.markedText}</p>
-            <span style={{ fontSize: '12px', color: 'var(--accent-primary)', fontFamily: 'DM Sans, sans-serif', fontWeight: 500 }}>
-              {(() => { const b = books.find(x => x.id === hotd.bookId); return b ? `— ${b.title}` : ''; })()}
-            </span>
-          </div>
+        {dailyHighlights.length > 0 && (
+          <DailyCarousel highlights={dailyHighlights} books={books} navigate={navigate} />
         )}
         {filteredBooks.length === 0 ? (
           searchQuery ? (
