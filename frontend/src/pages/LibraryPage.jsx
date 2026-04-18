@@ -172,12 +172,21 @@ export default function LibraryPage({ navigate }) {
       {/* Books grid */}
       <div style={{ padding: '20px' }}>
         {hotd && highlights.length > 0 && (
-          <div style={{ marginBottom: '18px', padding: '14px 16px', background: 'rgba(196,147,58,0.06)', borderLeft: '3px solid #C4933A', borderRadius: '8px' }}>
+          <div
+            onClick={() => navigate('highlights', { highlightId: hotd.id })}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate('highlights', { highlightId: hotd.id }); }}
+            role="button"
+            tabIndex={0}
+            aria-label="View highlight of the day in highlights section"
+            style={{ marginBottom: '18px', padding: '14px 16px', background: 'rgba(196,147,58,0.06)', borderLeft: '3px solid #C4933A', borderRadius: '8px', cursor: 'pointer', transition: 'opacity 150ms' }}
+          >
             <p style={{ margin: '0 0 6px', fontSize: '10px', fontWeight: 700, color: '#C4933A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Highlight of the Day</p>
             <p style={{ margin: '0 0 8px', fontSize: '14px', lineHeight: 1.65, color: 'var(--text-primary)', direction: getTextDirection(hotd.markedText), textAlign: isHebrew(hotd.markedText) ? 'right' : 'left', fontFamily: isHebrew(hotd.markedText) ? 'serif' : undefined }}>{hotd.markedText}</p>
-            <button onClick={() => { const b = books.find(x => x.id === hotd.bookId); if (b) navigate('book-detail', { bookId: b.id }); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '12px', color: 'var(--accent-primary)', fontFamily: 'DM Sans, sans-serif', fontWeight: 500 }}>
+            <span style={{ fontSize: '12px', color: 'var(--accent-primary)', fontFamily: 'DM Sans, sans-serif', fontWeight: 500 }}>
               {(() => { const b = books.find(x => x.id === hotd.bookId); return b ? `— ${b.title}` : ''; })()}
-            </button>
+            </span>
           </div>
         )}
         {filteredBooks.length === 0 ? (
