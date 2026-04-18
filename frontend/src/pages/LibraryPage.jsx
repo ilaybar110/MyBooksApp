@@ -51,7 +51,7 @@ export default function LibraryPage({ navigate }) {
     const favs = all.filter(h => h.isFavorite);
     const pool = favs.length >= 5 ? favs : all;
     const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    const picked = shuffled.slice(0, 5);
+    const picked = shuffled.slice(0, 5).sort((a, b) => b.markedText.length - a.markedText.length);
     localStorage.setItem('hotd5', JSON.stringify({ date: today, ids: picked.map(h => h.id) }));
     setDailyHighlights(picked);
   }, []);
