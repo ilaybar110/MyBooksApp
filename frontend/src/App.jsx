@@ -54,7 +54,7 @@ export default function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'library':        return <LibraryPage navigate={navigate} />;
-      case 'highlights':     return <AllHighlightsPage navigate={navigate} />;
+      case 'highlights':     return <AllHighlightsPage navigate={navigate} pageParams={pageParams} />;
       case 'settings':       return <SettingsPage navigate={navigate} />;
       case 'book-detail':    return <BookDetailPage navigate={navigate} bookId={pageParams.bookId} />;
       case 'add-book':       return <AddBookPage navigate={navigate} />;
