@@ -52,6 +52,7 @@ export default function DailyCarousel({ highlights, books, navigate }) {
         ref={scrollRef}
         style={{
           display: 'flex',
+          alignItems: 'flex-start',
           overflowX: 'auto',
           scrollSnapType: 'x mandatory',
           scrollbarWidth: 'none',
