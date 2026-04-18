@@ -11,7 +11,7 @@ import {
 } from '../utils/storage.js';
 import { sortHighlights } from '../utils/helpers.js';
 
-export default function AllHighlightsPage({ navigate }) {
+export default function AllHighlightsPage({ navigate, pageParams = {} }) {
   const [highlights, setHighlights] = useState([]);
   const [books, setBooks] = useState([]);
   const [allTags, setAllTags] = useState([]);
@@ -19,6 +19,8 @@ export default function AllHighlightsPage({ navigate }) {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [filterFavorites, setFilterFavorites] = useState(false);
   const debRef = useRef(null);
+  const cardRefs = useRef({});
+  const flashedRef = useRef(null);
   const [filterTag, setFilterTag] = useState(null);
   const [filterBookId, setFilterBookId] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -39,6 +41,20 @@ export default function AllHighlightsPage({ navigate }) {
     document.addEventListener('visibilitychange', handler);
     return () => document.removeEventListener('visibilitychange', handler);
   }, [loadData]);
+
+  useEffect(() => {
+    const targetId = pageParams.highlightId;
+    if (!targetId || flashedRef.current === targetId) return;
+    const frame = requestAnimationFrame(() => {
+      const el = cardRefs.current[targetId];
+      if (!el) return;
+      flashedRef.current = targetId;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('hotd-flash');
+      setTimeout(() => el.classList.remove('hotd-flash'), 1600);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [pageParams.highlightId]);
 
   const getBookTitle = (bookId) => {
     const book = books.find(b => b.id === bookId);
@@ -403,19 +419,20 @@ export default function AllHighlightsPage({ navigate }) {
           />
         ) : (
           filtered.map(highlight => (
-            <HighlightCard
-              key={highlight.id}
-              highlight={highlight}
-              bookTitle={getBookTitle(highlight.bookId)}
-              showBookTitle
-              onFavoriteToggle={handleFavoriteToggle}
-              onDelete={handleDeleteHighlight}
-              onEdit={handleEditHighlight}
-              onTagAdd={handleTagAdd}
-              onTagRemove={handleTagRemove}
-              allTags={allTags}
-              navigate={navigate}
-            />
+            <div key={highlight.id} ref={el => { cardRefs.current[highlight.id] = el; }}>
+              <HighlightCard
+                highlight={highlight}
+                bookTitle={getBookTitle(highlight.bookId)}
+                showBookTitle
+                onFavoriteToggle={handleFavoriteToggle}
+                onDelete={handleDeleteHighlight}
+                onEdit={handleEditHighlight}
+                onTagAdd={handleTagAdd}
+                onTagRemove={handleTagRemove}
+                allTags={allTags}
+                navigate={navigate}
+              />
+            </div>
           ))
         )}
       </div>
