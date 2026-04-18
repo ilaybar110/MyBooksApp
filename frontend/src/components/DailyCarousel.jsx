@@ -54,6 +54,11 @@ export default function DailyCarousel({ highlights, books, navigate }) {
           return (
             <div
               key={h.id}
+              onClick={() => navigate('highlights', { highlightId: h.id })}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate('highlights', { highlightId: h.id }); }}
+              aria-label="View highlight in highlights section"
               style={{
                 flex: '0 0 100%',
                 scrollSnapAlign: 'start',
@@ -61,6 +66,7 @@ export default function DailyCarousel({ highlights, books, navigate }) {
                 background: 'rgba(196,147,58,0.06)',
                 borderLeft: '3px solid #C4933A',
                 boxSizing: 'border-box',
+                cursor: 'pointer',
               }}
             >
               <p style={{
@@ -76,7 +82,7 @@ export default function DailyCarousel({ highlights, books, navigate }) {
               </p>
               {book && (
                 <button
-                  onClick={() => navigate('book-detail', { bookId: book.id })}
+                  onClick={e => { e.stopPropagation(); navigate('book-detail', { bookId: book.id }); }}
                   style={{
                     background: 'none',
                     border: 'none',
