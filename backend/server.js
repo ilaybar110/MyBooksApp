@@ -5,10 +5,20 @@ import Anthropic from '@anthropic-ai/sdk';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import webpush from 'web-push';
+import cron from 'node-cron';
 
 dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT || 'mailto:admin@example.com',
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+}
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -21,6 +31,7 @@ const DEFAULT_DATA = {
   highlights: [],
   tags: [],
   settings: { defaultLanguage: 'en', sortOrder: 'dateAdded' },
+  pushSubscriptions: [],
 };
 
 function readData() {
@@ -40,6 +51,36 @@ function readData() {
 function writeData(data) {
   fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+}
+
+async function sendDailyPush() {
+  const data = readData();
+  const subs = data.pushSubscriptions || [];
+  if (!subs.length) return;
+
+  const payload = JSON.stringify({
+    title: '📖 Highlights of the Day',
+    body: "Tap to see today's quotes",
+  });
+
+  const failed = [];
+  await Promise.all(subs.map(async sub => {
+    try {
+      await webpush.sendNotification(sub, payload);
+    } catch (e) {
+      if (e.statusCode === 410 || e.statusCode === 404) {
+        failed.push(sub.endpoint);
+      } else {
+        console.error('Push send error:', e.message);
+      }
+    }
+  }));
+
+  if (failed.length) {
+    data.pushSubscriptions = subs.filter(s => !failed.includes(s.endpoint));
+    writeData(data);
+    console.log(`Removed ${failed.length} expired push subscription(s)`);
+  }
 }
 
 app.use(cors());
@@ -69,6 +110,38 @@ app.post('/api/data', (req, res) => {
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// ── Push Notifications ────────────────────────────────────
+
+app.get('/api/push/vapid-public-key', (req, res) => {
+  res.json({ publicKey: process.env.VAPID_PUBLIC_KEY || '' });
+});
+
+app.post('/api/push/subscribe', (req, res) => {
+  try {
+    const subscription = req.body;
+    if (!subscription?.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
+    const data = readData();
+    if (!data.pushSubscriptions) data.pushSubscriptions = [];
+    const exists = data.pushSubscriptions.some(s => s.endpoint === subscription.endpoint);
+    if (!exists) {
+      data.pushSubscriptions.push(subscription);
+      writeData(data);
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/push/test', async (req, res) => {
+  try {
+    await sendDailyPush();
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // ── AI Analysis ───────────────────────────────────────────
@@ -157,8 +230,15 @@ if (fs.existsSync(frontendDist)) {
   });
 }
 
+// Daily push notification at 10:00 AM server time
+cron.schedule('0 10 * * *', () => {
+  console.log('Sending daily push notifications...');
+  sendDailyPush().catch(e => console.error('Daily push failed:', e));
+});
+
 app.listen(PORT, () => {
   console.log(`BookMarks running on port ${PORT}`);
   console.log(`Data file: ${DATA_FILE}`);
   console.log(`AI key: ${process.env.ANTHROPIC_API_KEY ? 'configured' : 'NOT SET'}`);
+  console.log(`Push: ${process.env.VAPID_PUBLIC_KEY ? 'configured' : 'NOT SET — add VAPID keys to .env'}`);
 });
