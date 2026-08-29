@@ -184,7 +184,7 @@ export default function AllHighlightsPage({ navigate, pageParams = {} }) {
             {activeFilterCount > 0 && (
               <span
                 style={{
-                  background: 'white',
+                  background: 'var(--bg-card)',
                   color: 'var(--accent-primary)',
                   borderRadius: '50%',
                   width: '18px',

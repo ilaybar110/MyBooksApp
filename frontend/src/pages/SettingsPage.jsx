@@ -19,6 +19,8 @@ import {
   fetchGistData,
   pushGistData,
 } from '../utils/gist.js';
+import { getStreakStatus } from '../utils/streak.js';
+import { getTheme, setTheme } from '../utils/theme.js';
 import { formatFileSize, getStorageSize } from '../utils/helpers.js';
 import { showToast } from '../App.jsx';
 
@@ -35,6 +37,8 @@ export default function SettingsPage({ navigate }) {
   const [showToken, setShowToken] = useState(false);
   const [syncStatus, setSyncStatus] = useState(null); // null | 'syncing' | 'ok' | 'error'
   const [syncError, setSyncError] = useState('');
+  const [streak, setStreak] = useState({ current: 0, longest: 0, doneToday: false, freezeAvailable: true });
+  const [theme, setThemeState] = useState('auto');
   const importRef = useRef(null);
 
   useEffect(() => {
@@ -42,6 +46,8 @@ export default function SettingsPage({ navigate }) {
     setSettings(getSettings());
     setStorageSize(getStorageSize());
     setGithubToken(getGithubToken());
+    setStreak(getStreakStatus());
+    setThemeState(getTheme());
   }, []);
 
   const handleSaveToken = async () => {
@@ -143,6 +149,10 @@ export default function SettingsPage({ navigate }) {
     setSettings(newSettings);
   };
 
+  const handleThemeChange = (value) => {
+    setThemeState(setTheme(value));
+  };
+
   const storagePct = Math.min((storageSize / (5 * 1024 * 1024)) * 100, 100);
 
   return (
@@ -222,41 +232,26 @@ export default function SettingsPage({ navigate }) {
 
         {/* Preferences */}
         <Section title="Preferences">
+          <SettingRow label="Appearance">
+            <Segmented
+              value={theme}
+              onChange={handleThemeChange}
+              options={[
+                { value: 'light', label: '☀︎' },
+                { value: 'dark', label: '☾' },
+                { value: 'auto', label: 'Auto' },
+              ]}
+            />
+          </SettingRow>
           <SettingRow label="Default Language">
-            <div
-              style={{
-                display: 'flex',
-                background: 'var(--bg-secondary)',
-                borderRadius: '8px',
-                padding: '3px',
-                border: '1px solid var(--border)',
-              }}
-            >
-              {[
+            <Segmented
+              value={settings.defaultLanguage}
+              onChange={v => handleSettingChange('defaultLanguage', v)}
+              options={[
                 { value: 'en', label: 'EN' },
                 { value: 'he', label: 'HE' },
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => handleSettingChange('defaultLanguage', opt.value)}
-                  style={{
-                    padding: '6px 14px',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontFamily: 'DM Sans, sans-serif',
-                    fontSize: '13px',
-                    fontWeight: settings.defaultLanguage === opt.value ? 600 : 400,
-                    background: settings.defaultLanguage === opt.value ? 'var(--bg-card)' : 'transparent',
-                    color: settings.defaultLanguage === opt.value ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                    transition: 'all 200ms',
-                  }}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+              ]}
+            />
           </SettingRow>
         </Section>
 
@@ -326,6 +321,26 @@ export default function SettingsPage({ navigate }) {
               {syncStatus === 'syncing' ? 'Syncing…' : 'Pull Latest from Repo'}
             </button>
           )}
+        </Section>
+
+        {/* Reading Streak */}
+        <Section title="Reading Streak">
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 14px', lineHeight: 1.5 }}>
+            Swipe through all of the day's quotes to keep your streak alive.
+          </p>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+            <StreakStat label="Current" value={streak.current} accent />
+            <StreakStat label="Longest" value={streak.longest} />
+          </div>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', margin: 0, color: streak.doneToday ? '#16a34a' : 'var(--text-muted)' }}>
+            {streak.doneToday
+              ? 'Read today — streak safe.'
+              : "Not read today yet."}
+            {' '}
+            {streak.freezeAvailable
+              ? 'Streak freeze available (one per week).'
+              : 'Streak freeze already used this week.'}
+          </p>
         </Section>
 
         {/* Tags */}
@@ -567,6 +582,68 @@ export default function SettingsPage({ navigate }) {
         confirmLabel="Clear Everything"
         danger
       />
+    </div>
+  );
+}
+
+function Segmented({ value, onChange, options }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        background: 'var(--bg-secondary)',
+        borderRadius: '8px',
+        padding: '3px',
+        border: '1px solid var(--border)',
+      }}
+    >
+      {options.map(opt => {
+        const selected = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => onChange(opt.value)}
+            style={{
+              padding: '6px 14px',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '13px',
+              fontWeight: selected ? 600 : 400,
+              background: selected ? 'var(--bg-card)' : 'transparent',
+              color: selected ? 'var(--accent-primary)' : 'var(--text-secondary)',
+              transition: 'all 200ms',
+            }}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function StreakStat({ label, value, accent }) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        textAlign: 'center',
+        padding: '12px 8px',
+        borderRadius: '10px',
+        border: '1px solid rgba(196,147,58,0.22)',
+        background: accent ? 'rgba(196,147,58,0.09)' : 'transparent',
+      }}
+    >
+      <div style={{ fontSize: '22px', fontWeight: 700, color: accent ? '#C4933A' : 'var(--text-primary)', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.2 }}>
+        {accent ? `🔥 ${value}` : value}
+      </div>
+      <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'DM Sans, sans-serif', marginTop: '3px' }}>
+        {label}
+      </div>
     </div>
   );
 }

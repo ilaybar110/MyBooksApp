@@ -343,8 +343,8 @@ export default function AddBookPage({ navigate }) {
         {errors.submit && (
           <div
             style={{
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
+              background: 'var(--danger-bg)',
+              border: '1px solid var(--danger)',
               borderRadius: '8px',
               padding: '12px 16px',
               marginBottom: '20px',

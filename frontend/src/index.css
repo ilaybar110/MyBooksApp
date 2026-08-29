@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: light;
   --bg-primary: #FAF6F1;
   --bg-secondary: #F0EAE0;
   --bg-card: #FFFFFF;
@@ -15,6 +16,65 @@
   --border: #E8E0D6;
   --tag-bg: #EDE7DF;
   --danger: #C0392B;
+  --card-shadow: 0 2px 8px rgba(44, 36, 32, 0.08);
+  --overlay: rgba(44, 36, 32, 0.5);
+  --accent-hover: #b5642f;
+  --danger-hover: #a93226;
+  --danger-bg: #fef2f2;
+  /* Text on a filled accent/danger button. */
+  --on-accent: #FFFFFF;
+}
+
+/*
+ * Dark palette. Defined twice on purpose: once for "Auto" (no data-theme
+ * attribute, follow the OS) and once for an explicit Dark choice, so the
+ * setting wins over the OS in both directions.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg-primary: #17130F;
+    --bg-secondary: #211B16;
+    --bg-card: #241D18;
+    --text-primary: #F0E8DF;
+    --text-secondary: #BCAA9A;
+    --text-muted: #8A7A6C;
+    --accent-primary: #D98B3F;
+    --accent-secondary: #B8956E;
+    --accent-favorite: #E0B95C;
+    --border: #382E26;
+    --tag-bg: #2E251E;
+    --danger: #E5705F;
+    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --overlay: rgba(0, 0, 0, 0.65);
+    --accent-hover: #E89B52;
+    --danger-hover: #F08575;
+    --danger-bg: #2E1A17;
+    /* White on the brightened accent is only 2.7:1 — use ink instead. */
+    --on-accent: #17130F;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg-primary: #17130F;
+  --bg-secondary: #211B16;
+  --bg-card: #241D18;
+  --text-primary: #F0E8DF;
+  --text-secondary: #BCAA9A;
+  --text-muted: #8A7A6C;
+  --accent-primary: #D98B3F;
+  --accent-secondary: #B8956E;
+  --accent-favorite: #E0B95C;
+  --border: #382E26;
+  --tag-bg: #2E251E;
+  --danger: #E5705F;
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --overlay: rgba(0, 0, 0, 0.65);
+  --accent-hover: #E89B52;
+  --danger-hover: #F08575;
+  --danger-bg: #2E1A17;
+  --on-accent: #17130F;
 }
 
 * {
@@ -91,7 +151,7 @@ button, a, input, select, textarea {
 .card {
   background: var(--bg-card);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(44, 36, 32, 0.08);
+  box-shadow: var(--card-shadow);
 }
 
 /* Highlight card accent border */
@@ -105,7 +165,7 @@ button, a, input, select, textarea {
 /* Button styles */
 .btn-primary {
   background: var(--accent-primary);
-  color: white;
+  color: var(--on-accent);
   border: none;
   border-radius: 8px;
   padding: 12px 24px;
@@ -120,7 +180,7 @@ button, a, input, select, textarea {
   gap: 8px;
 }
 .btn-primary:hover {
-  background: #b5642f;
+  background: var(--accent-hover);
 }
 .btn-primary:active {
   transform: scale(0.98);
@@ -156,7 +216,7 @@ button, a, input, select, textarea {
 
 .btn-danger {
   background: var(--danger);
-  color: white;
+  color: var(--on-accent);
   border: none;
   border-radius: 8px;
   padding: 12px 24px;
@@ -171,7 +231,7 @@ button, a, input, select, textarea {
   gap: 8px;
 }
 .btn-danger:hover {
-  background: #a93226;
+  background: var(--danger-hover);
 }
 .btn-danger:active {
   transform: scale(0.98);
@@ -306,7 +366,7 @@ textarea.input-field {
 .overlay-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(44, 36, 32, 0.5);
+  background: var(--overlay);
   z-index: 50;
   backdrop-filter: blur(2px);
 }

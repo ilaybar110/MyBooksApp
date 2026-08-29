@@ -4,6 +4,8 @@ import EmptyState from '../components/EmptyState.jsx';
 import DailyCarousel from '../components/DailyCarousel.jsx';
 import { getStorage, getHighlights } from '../utils/storage.js';
 import { sortBooks, isHebrew, getTextDirection } from '../utils/helpers.js';
+import { getStreakStatus, markDayComplete } from '../utils/streak.js';
+import { showToast } from '../App.jsx';
 
 export default function LibraryPage({ navigate }) {
   const [books, setBooks] = useState([]);
@@ -12,6 +14,7 @@ export default function LibraryPage({ navigate }) {
   const [sortOrder, setSortOrder] = useState('dateAdded');
   const [debouncedQ, setDebouncedQ] = useState('');
   const [dailyHighlights, setDailyHighlights] = useState([]);
+  const [streak, setStreak] = useState(() => getStreakStatus());
   const debRef = useRef(null);
 
   const loadData = useCallback(() => {
@@ -54,6 +57,19 @@ export default function LibraryPage({ navigate }) {
     const picked = shuffled.slice(0, 5).sort((a, b) => b.markedText.length - a.markedText.length);
     localStorage.setItem('hotd5', JSON.stringify({ date: today, ids: picked.map(h => h.id) }));
     setDailyHighlights(picked);
+  }, []);
+
+  const handleDailyComplete = useCallback(() => {
+    const result = markDayComplete();
+    setStreak(getStreakStatus());
+    if (result.alreadyDone) return;
+    if (result.isNewRecord) {
+      showToast(`🏆 New record — ${result.current} day streak!`);
+    } else if (result.usedFreeze) {
+      showToast('❄️ Streak freeze used — streak saved');
+    } else {
+      showToast(`🔥 ${result.current} day streak!`);
+    }
   }, []);
 
   const getHighlightCount = (bookId) =>
@@ -175,7 +191,13 @@ export default function LibraryPage({ navigate }) {
       {/* Books grid */}
       <div style={{ padding: '20px' }}>
         {dailyHighlights.length > 0 && (
-          <DailyCarousel highlights={dailyHighlights} books={books} navigate={navigate} />
+          <DailyCarousel
+            highlights={dailyHighlights}
+            books={books}
+            navigate={navigate}
+            streak={streak}
+            onComplete={handleDailyComplete}
+          />
         )}
         {filteredBooks.length === 0 ? (
           searchQuery ? (

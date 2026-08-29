@@ -3,6 +3,9 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    # Data syncs from the app touch data/ constantly; the build never reads it.
+    paths-ignore:
+      - 'data/**'
 
 permissions:
   contents: read
