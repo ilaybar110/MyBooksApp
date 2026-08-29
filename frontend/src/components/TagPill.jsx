@@ -8,7 +8,7 @@ export default function TagPill({ tag, onRemove, onClick, active = false }) {
       style={{
         cursor: onClick ? 'pointer' : 'default',
         background: active ? 'var(--accent-primary)' : 'var(--tag-bg)',
-        color: active ? 'white' : 'var(--text-secondary)',
+        color: active ? 'var(--on-accent)' : 'var(--text-secondary)',
         transition: 'background 200ms, color 200ms',
       }}
     >

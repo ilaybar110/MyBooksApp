@@ -237,7 +237,7 @@ export default function HighlightCard({
               style={{
                 flex: 1,
                 background: 'var(--accent-primary)',
-                color: 'white',
+                color: 'var(--on-accent)',
                 border: 'none',
                 borderRadius: '8px',
                 padding: '9px 16px',
@@ -416,7 +416,7 @@ export default function HighlightCard({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'white',
+                  color: 'var(--on-accent)',
                   fontSize: '14px',
                   padding: 0,
                 }}

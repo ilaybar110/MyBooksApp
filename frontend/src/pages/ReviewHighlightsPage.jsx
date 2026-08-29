@@ -546,7 +546,7 @@ function ReviewHighlightItem({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'white',
+                color: 'var(--on-accent)',
                 fontSize: '14px',
                 padding: 0,
               }}

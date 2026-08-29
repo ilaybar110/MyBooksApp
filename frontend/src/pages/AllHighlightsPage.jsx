@@ -170,7 +170,7 @@ export default function AllHighlightsPage({ navigate, pageParams = {} }) {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              color: activeFilterCount > 0 ? 'white' : 'var(--text-secondary)',
+              color: activeFilterCount > 0 ? 'var(--on-accent)' : 'var(--text-secondary)',
               fontFamily: 'DM Sans, sans-serif',
               fontSize: '13px',
               fontWeight: 500,
