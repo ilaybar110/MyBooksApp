@@ -1,0 +1,25 @@
+name: Daily ntfy
+
+on:
+  schedule:
+    # GitHub cron is UTC and has no DST. 10:00 Jerusalem is 07:00 UTC in
+    # summer (IDT, UTC+3) and 08:00 UTC in winter (IST, UTC+2). The script
+    # exits unless it is really 10:00 there, so only one run per day sends.
+    - cron: '0 7 * * *'
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Send reminder
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/send-daily-ntfy.mjs

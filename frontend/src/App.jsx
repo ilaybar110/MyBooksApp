@@ -1,6 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import BottomNav from './components/BottomNav.jsx';
-import { initPushNotifications } from './utils/notifications.js';
 import LibraryPage from './pages/LibraryPage.jsx';
 import AllHighlightsPage from './pages/AllHighlightsPage.jsx';
 import BookDetailPage from './pages/BookDetailPage.jsx';
@@ -44,10 +43,6 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('library');
   const [pageParams, setPageParams] = useState({});
   const [activeTab, setActiveTab] = useState('library');
-
-  useEffect(() => {
-    initPushNotifications();
-  }, []);
 
   const navigate = useCallback((page, params = {}) => {
     setCurrentPage(page);

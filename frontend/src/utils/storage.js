@@ -21,6 +21,12 @@ const DEFAULT_STATE = {
     defaultLanguage: 'en',
     sortOrder: 'dateAdded',
   },
+  streak: {
+    current: 0,
+    longest: 0,
+    lastCompletedDate: null,
+    lastFreezeDate: null,
+  },
 };
 
 export function getStorage() {
@@ -37,6 +43,7 @@ export function getStorage() {
     if (!parsed.highlights) parsed.highlights = [];
     if (!parsed.tags) parsed.tags = [];
     if (!parsed.settings) parsed.settings = { ...DEFAULT_STATE.settings };
+    if (!parsed.streak) parsed.streak = { ...DEFAULT_STATE.streak };
     return parsed;
   } catch (e) {
     console.error('Storage read error:', e);

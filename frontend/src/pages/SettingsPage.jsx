@@ -19,6 +19,7 @@ import {
   fetchGistData,
   pushGistData,
 } from '../utils/gist.js';
+import { getStreakStatus } from '../utils/streak.js';
 import { formatFileSize, getStorageSize } from '../utils/helpers.js';
 import { showToast } from '../App.jsx';
 
@@ -35,6 +36,7 @@ export default function SettingsPage({ navigate }) {
   const [showToken, setShowToken] = useState(false);
   const [syncStatus, setSyncStatus] = useState(null); // null | 'syncing' | 'ok' | 'error'
   const [syncError, setSyncError] = useState('');
+  const [streak, setStreak] = useState({ current: 0, longest: 0, doneToday: false, freezeAvailable: true });
   const importRef = useRef(null);
 
   useEffect(() => {
@@ -42,6 +44,7 @@ export default function SettingsPage({ navigate }) {
     setSettings(getSettings());
     setStorageSize(getStorageSize());
     setGithubToken(getGithubToken());
+    setStreak(getStreakStatus());
   }, []);
 
   const handleSaveToken = async () => {
@@ -328,6 +331,26 @@ export default function SettingsPage({ navigate }) {
           )}
         </Section>
 
+        {/* Reading Streak */}
+        <Section title="Reading Streak">
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 14px', lineHeight: 1.5 }}>
+            Swipe through all of the day's quotes to keep your streak alive.
+          </p>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+            <StreakStat label="Current" value={streak.current} accent />
+            <StreakStat label="Longest" value={streak.longest} />
+          </div>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', margin: 0, color: streak.doneToday ? '#16a34a' : 'var(--text-muted)' }}>
+            {streak.doneToday
+              ? 'Read today — streak safe.'
+              : "Not read today yet."}
+            {' '}
+            {streak.freezeAvailable
+              ? 'Streak freeze available (one per week).'
+              : 'Streak freeze already used this week.'}
+          </p>
+        </Section>
+
         {/* Tags */}
         <Section title="Tags">
           <div style={{ marginBottom: '12px' }}>
@@ -567,6 +590,28 @@ export default function SettingsPage({ navigate }) {
         confirmLabel="Clear Everything"
         danger
       />
+    </div>
+  );
+}
+
+function StreakStat({ label, value, accent }) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        textAlign: 'center',
+        padding: '12px 8px',
+        borderRadius: '10px',
+        border: '1px solid rgba(196,147,58,0.22)',
+        background: accent ? 'rgba(196,147,58,0.09)' : 'transparent',
+      }}
+    >
+      <div style={{ fontSize: '22px', fontWeight: 700, color: accent ? '#C4933A' : 'var(--text-primary)', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.2 }}>
+        {accent ? `🔥 ${value}` : value}
+      </div>
+      <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'DM Sans, sans-serif', marginTop: '3px' }}>
+        {label}
+      </div>
     </div>
   );
 }
