@@ -20,6 +20,7 @@ import {
   pushGistData,
 } from '../utils/gist.js';
 import { getStreakStatus } from '../utils/streak.js';
+import { getTheme, setTheme } from '../utils/theme.js';
 import { formatFileSize, getStorageSize } from '../utils/helpers.js';
 import { showToast } from '../App.jsx';
 
@@ -37,6 +38,7 @@ export default function SettingsPage({ navigate }) {
   const [syncStatus, setSyncStatus] = useState(null); // null | 'syncing' | 'ok' | 'error'
   const [syncError, setSyncError] = useState('');
   const [streak, setStreak] = useState({ current: 0, longest: 0, doneToday: false, freezeAvailable: true });
+  const [theme, setThemeState] = useState('auto');
   const importRef = useRef(null);
 
   useEffect(() => {
@@ -45,6 +47,7 @@ export default function SettingsPage({ navigate }) {
     setStorageSize(getStorageSize());
     setGithubToken(getGithubToken());
     setStreak(getStreakStatus());
+    setThemeState(getTheme());
   }, []);
 
   const handleSaveToken = async () => {
@@ -146,6 +149,10 @@ export default function SettingsPage({ navigate }) {
     setSettings(newSettings);
   };
 
+  const handleThemeChange = (value) => {
+    setThemeState(setTheme(value));
+  };
+
   const storagePct = Math.min((storageSize / (5 * 1024 * 1024)) * 100, 100);
 
   return (
@@ -225,41 +232,26 @@ export default function SettingsPage({ navigate }) {
 
         {/* Preferences */}
         <Section title="Preferences">
+          <SettingRow label="Appearance">
+            <Segmented
+              value={theme}
+              onChange={handleThemeChange}
+              options={[
+                { value: 'light', label: '☀︎' },
+                { value: 'dark', label: '☾' },
+                { value: 'auto', label: 'Auto' },
+              ]}
+            />
+          </SettingRow>
           <SettingRow label="Default Language">
-            <div
-              style={{
-                display: 'flex',
-                background: 'var(--bg-secondary)',
-                borderRadius: '8px',
-                padding: '3px',
-                border: '1px solid var(--border)',
-              }}
-            >
-              {[
+            <Segmented
+              value={settings.defaultLanguage}
+              onChange={v => handleSettingChange('defaultLanguage', v)}
+              options={[
                 { value: 'en', label: 'EN' },
                 { value: 'he', label: 'HE' },
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => handleSettingChange('defaultLanguage', opt.value)}
-                  style={{
-                    padding: '6px 14px',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontFamily: 'DM Sans, sans-serif',
-                    fontSize: '13px',
-                    fontWeight: settings.defaultLanguage === opt.value ? 600 : 400,
-                    background: settings.defaultLanguage === opt.value ? 'var(--bg-card)' : 'transparent',
-                    color: settings.defaultLanguage === opt.value ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                    transition: 'all 200ms',
-                  }}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+              ]}
+            />
           </SettingRow>
         </Section>
 
@@ -590,6 +582,46 @@ export default function SettingsPage({ navigate }) {
         confirmLabel="Clear Everything"
         danger
       />
+    </div>
+  );
+}
+
+function Segmented({ value, onChange, options }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        background: 'var(--bg-secondary)',
+        borderRadius: '8px',
+        padding: '3px',
+        border: '1px solid var(--border)',
+      }}
+    >
+      {options.map(opt => {
+        const selected = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => onChange(opt.value)}
+            style={{
+              padding: '6px 14px',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '13px',
+              fontWeight: selected ? 600 : 400,
+              background: selected ? 'var(--bg-card)' : 'transparent',
+              color: selected ? 'var(--accent-primary)' : 'var(--text-secondary)',
+              transition: 'all 200ms',
+            }}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

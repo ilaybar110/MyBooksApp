@@ -20,6 +20,7 @@ const DEFAULT_STATE = {
   settings: {
     defaultLanguage: 'en',
     sortOrder: 'dateAdded',
+    theme: 'auto',
   },
   streak: {
     current: 0,
