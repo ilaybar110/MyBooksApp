@@ -403,7 +403,7 @@ export default function SettingsPage({ navigate }) {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            color: 'white',
+                            color: 'var(--on-accent)',
                             fontSize: '12px',
                           }}
                         >

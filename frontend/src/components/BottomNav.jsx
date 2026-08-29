@@ -37,7 +37,7 @@ export default function BottomNav({ activeTab, navigate }) {
     <nav
       className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-40"
       style={{
-        background: 'rgba(255,255,255,0.95)',
+        background: 'var(--nav-bg)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
         borderTop: '1px solid var(--border)',
