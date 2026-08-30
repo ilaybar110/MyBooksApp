@@ -5,7 +5,8 @@ import DailyCarousel from '../components/DailyCarousel.jsx';
 import StreakBanner from '../components/StreakBanner.jsx';
 import { getStorage, getHighlights } from '../utils/storage.js';
 import { sortBooks, isHebrew, getTextDirection } from '../utils/helpers.js';
-import { getStreakStatus, markDayComplete } from '../utils/streak.js';
+import { getStreakStatus, markDayComplete, todayKey } from '../utils/streak.js';
+import { pickDailyFive } from '../utils/dailyPick.js';
 import { showToast } from '../App.jsx';
 
 export default function LibraryPage({ navigate }) {
@@ -42,24 +43,12 @@ export default function LibraryPage({ navigate }) {
     return () => document.removeEventListener('visibilitychange', handler);
   }, [loadData]);
 
+  // Derived from the date, not drawn at random, so every container on the
+  // phone shows the same five. Recomputed when the library changes, since a
+  // sync can bring in highlights this device did not have yet.
   useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    const stored = (() => { try { return JSON.parse(localStorage.getItem('hotd5') || '{}'); } catch { return {}; } })();
-    const all = getHighlights();
-    if (!all.length) return;
-
-    if (stored.date === today && Array.isArray(stored.ids) && stored.ids.length) {
-      const found = stored.ids.map(id => all.find(h => h.id === id)).filter(Boolean);
-      if (found.length) { setDailyHighlights(found); return; }
-    }
-
-    const favs = all.filter(h => h.isFavorite);
-    const pool = favs.length >= 5 ? favs : all;
-    const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    const picked = shuffled.slice(0, 5).sort((a, b) => b.markedText.length - a.markedText.length);
-    localStorage.setItem('hotd5', JSON.stringify({ date: today, ids: picked.map(h => h.id) }));
-    setDailyHighlights(picked);
-  }, []);
+    setDailyHighlights(pickDailyFive(getHighlights(), todayKey()));
+  }, [highlights]);
 
   // The carousel reports the furthest card reached; never walk it backwards.
   const handleDailyProgress = useCallback((index) => {
