@@ -39,6 +39,7 @@ export default function SettingsPage({ navigate }) {
   const [syncError, setSyncError] = useState('');
   const [streak, setStreak] = useState({ current: 0, longest: 0, doneToday: false, freezeAvailable: true });
   const [theme, setThemeState] = useState('auto');
+  const [conflict, setConflict] = useState(null);
   const importRef = useRef(null);
 
   useEffect(() => {
@@ -50,6 +51,18 @@ export default function SettingsPage({ navigate }) {
     setThemeState(getTheme());
   }, []);
 
+  const adoptRemote = (data) => {
+    localStorage.setItem('bookmarks_app', JSON.stringify(data));
+    setTags(getAllTags());
+    setSettings(getSettings());
+    setStorageSize(getStorageSize());
+    setStreak(getStreakStatus());
+  };
+
+  // Saving a token used to push unconditionally, which meant entering it on a
+  // device with an empty library overwrote the good copy in the repo. Decide
+  // the direction from what each side actually holds, and ask when both have
+  // data.
   const handleSaveToken = async () => {
     saveGithubToken(githubToken);
     if (!githubToken.trim()) {
@@ -60,7 +73,49 @@ export default function SettingsPage({ navigate }) {
     setSyncError('');
     try {
       const { getStorage } = await import('../utils/storage.js');
-      await pushGistData(getStorage());
+      const local = getStorage();
+      let remote = null;
+      try {
+        remote = await fetchGistData();
+      } catch {
+        remote = null; // no file in the repo yet, or no read access
+      }
+
+      const lc = countItems(local);
+      const rc = countItems(remote);
+
+      if (rc > 0 && lc === 0) {
+        adoptRemote(remote);
+        setSyncStatus('ok');
+        showToast(`Loaded ${rc} item${rc === 1 ? '' : 's'} from the repo.`);
+        return;
+      }
+      if (lc > 0 && rc > 0 && !sameData(local, remote)) {
+        setConflict({ local, remote, lc, rc });
+        setSyncStatus(null);
+        return;
+      }
+      await pushGistData(local);
+      setSyncStatus('ok');
+    } catch (e) {
+      setSyncStatus('error');
+      setSyncError(e.message);
+    }
+  };
+
+  const resolveConflict = async (direction) => {
+    const { local, remote } = conflict;
+    setConflict(null);
+    setSyncStatus('syncing');
+    setSyncError('');
+    try {
+      if (direction === 'pull') {
+        adoptRemote(remote);
+        showToast('This device now matches the repo.');
+      } else {
+        await pushGistData(local);
+        showToast('Repo now matches this device.');
+      }
       setSyncStatus('ok');
     } catch (e) {
       setSyncStatus('error');
@@ -72,9 +127,18 @@ export default function SettingsPage({ navigate }) {
     setSyncStatus('syncing');
     setSyncError('');
     try {
+      const { getStorage } = await import('../utils/storage.js');
+      const local = getStorage();
       const data = await fetchGistData();
-      localStorage.setItem('bookmarks_app', JSON.stringify(data));
-      setStorageSize(getStorageSize());
+      const lc = countItems(local);
+      const rc = countItems(data);
+      // Pulling replaces everything, so never silently drop a bigger library.
+      if (lc > rc) {
+        setConflict({ local, remote: data, lc, rc });
+        setSyncStatus(null);
+        return;
+      }
+      adoptRemote(data);
       setSyncStatus('ok');
     } catch (e) {
       setSyncStatus('error');
@@ -573,6 +637,33 @@ export default function SettingsPage({ navigate }) {
         </Section>
       </div>
 
+      {conflict && (
+        <Modal
+          isOpen
+          onClose={() => setConflict(null)}
+          title="Both sides have data"
+          footer={
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button className="btn-secondary" style={{ flex: 1 }} onClick={() => resolveConflict('pull')}>
+                Use repo
+              </button>
+              <button className="btn-primary" style={{ flex: 1 }} onClick={() => resolveConflict('push')}>
+                Use this device
+              </button>
+            </div>
+          }
+        >
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
+            This device has <strong>{conflict.lc}</strong> item{conflict.lc === 1 ? '' : 's'}; the repo has{' '}
+            <strong>{conflict.rc}</strong>. Syncing replaces one with the other — there is no merge, so the side you
+            don't pick is overwritten.
+          </p>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, margin: '10px 0 0' }}>
+            Not sure? Cancel and use Export first.
+          </p>
+        </Modal>
+      )}
+
       <ConfirmModal
         isOpen={showClearConfirm}
         onClose={() => setShowClearConfirm(false)}
@@ -584,6 +675,18 @@ export default function SettingsPage({ navigate }) {
       />
     </div>
   );
+}
+
+function countItems(data) {
+  if (!data) return 0;
+  return (data.books?.length || 0) + (data.highlights?.length || 0);
+}
+
+function sameData(a, b) {
+  return (a.books?.length || 0) === (b.books?.length || 0)
+    && (a.highlights?.length || 0) === (b.highlights?.length || 0)
+    && (a.streak?.lastCompletedDate || null) === (b.streak?.lastCompletedDate || null)
+    && (a.streak?.current || 0) === (b.streak?.current || 0);
 }
 
 function Segmented({ value, onChange, options }) {
