@@ -6,6 +6,11 @@ const VERSION = 1;
 let _pushTimer = null;
 function schedulePush(data) {
   if (!getGithubToken()) return;
+  // An empty library must never overwrite a synced one. On iOS a Home Screen
+  // web app gets its own localStorage container, so it starts empty — and this
+  // automatic push wiped the repo twice before the guard existed. Deliberate
+  // pushes still go through Settings, which asks first.
+  if (!(data?.books?.length || data?.highlights?.length)) return;
   clearTimeout(_pushTimer);
   _pushTimer = setTimeout(() => {
     pushGistData(data).catch(e => console.warn('Gist sync failed:', e));
