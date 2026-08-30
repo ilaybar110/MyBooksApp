@@ -57,8 +57,19 @@ export function getStorage() {
   }
 }
 
+/**
+ * Writes storage exactly as given, without stamping or scheduling a push.
+ * Used when adopting a copy pulled from the repo, so the pull can't bounce
+ * straight back as a push.
+ */
+export function replaceStorage(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
 export function saveStorage(data) {
   try {
+    // Stamped so two devices can tell whose copy is newer.
+    data.lastModified = Date.now();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     schedulePush(data);
   } catch (e) {

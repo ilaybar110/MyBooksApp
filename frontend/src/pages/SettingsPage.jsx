@@ -12,6 +12,7 @@ import {
   deleteTag,
   getSettings,
   updateSettings,
+  replaceStorage,
 } from '../utils/storage.js';
 import {
   getGithubToken,
@@ -52,7 +53,7 @@ export default function SettingsPage({ navigate }) {
   }, []);
 
   const adoptRemote = (data) => {
-    localStorage.setItem('bookmarks_app', JSON.stringify(data));
+    replaceStorage(data);
     setTags(getAllTags());
     setSettings(getSettings());
     setStorageSize(getStorageSize());

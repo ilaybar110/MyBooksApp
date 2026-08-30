@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import BottomNav from './components/BottomNav.jsx';
+import { autoSync } from './utils/sync.js';
 import LibraryPage from './pages/LibraryPage.jsx';
 import AllHighlightsPage from './pages/AllHighlightsPage.jsx';
 import BookDetailPage from './pages/BookDetailPage.jsx';
@@ -43,6 +44,26 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('library');
   const [pageParams, setPageParams] = useState({});
   const [activeTab, setActiveTab] = useState('library');
+  // Bumped when a sync replaces local storage, to remount the current page.
+  const [dataVersion, setDataVersion] = useState(0);
+
+  useEffect(() => {
+    const run = (opts) => autoSync(opts).then(r => {
+      if (r === 'pulled') setDataVersion(v => v + 1);
+    });
+
+    run({ force: true });
+
+    // Coming back to the app is the moment the other container's changes
+    // matter, so check again then. autoSync throttles itself.
+    const onVisible = () => { if (!document.hidden) run(); };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, []);
 
   const navigate = useCallback((page, params = {}) => {
     setCurrentPage(page);
@@ -68,7 +89,7 @@ export default function App() {
         className="w-full"
         style={{ paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}
       >
-        {renderPage()}
+        <React.Fragment key={dataVersion}>{renderPage()}</React.Fragment>
       </main>
       <BottomNav activeTab={activeTab} navigate={navigate} />
       <ToastContainer />
