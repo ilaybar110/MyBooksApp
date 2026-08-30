@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import BookCard from '../components/BookCard.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import DailyCarousel from '../components/DailyCarousel.jsx';
+import StreakBanner from '../components/StreakBanner.jsx';
 import { getStorage, getHighlights } from '../utils/storage.js';
 import { sortBooks, isHebrew, getTextDirection } from '../utils/helpers.js';
 import { getStreakStatus, markDayComplete } from '../utils/streak.js';
@@ -15,6 +16,7 @@ export default function LibraryPage({ navigate }) {
   const [debouncedQ, setDebouncedQ] = useState('');
   const [dailyHighlights, setDailyHighlights] = useState([]);
   const [streak, setStreak] = useState(() => getStreakStatus());
+  const [readCount, setReadCount] = useState(0);
   const debRef = useRef(null);
 
   const loadData = useCallback(() => {
@@ -57,6 +59,11 @@ export default function LibraryPage({ navigate }) {
     const picked = shuffled.slice(0, 5).sort((a, b) => b.markedText.length - a.markedText.length);
     localStorage.setItem('hotd5', JSON.stringify({ date: today, ids: picked.map(h => h.id) }));
     setDailyHighlights(picked);
+  }, []);
+
+  // The carousel reports the furthest card reached; never walk it backwards.
+  const handleDailyProgress = useCallback((index) => {
+    setReadCount(prev => Math.max(prev, index + 1));
   }, []);
 
   const handleDailyComplete = useCallback(() => {
@@ -191,11 +198,18 @@ export default function LibraryPage({ navigate }) {
       {/* Books grid */}
       <div style={{ padding: '20px' }}>
         {dailyHighlights.length > 0 && (
+          <StreakBanner
+            streak={streak}
+            readCount={streak.doneToday ? dailyHighlights.length : readCount}
+            total={dailyHighlights.length}
+          />
+        )}
+        {dailyHighlights.length > 0 && (
           <DailyCarousel
             highlights={dailyHighlights}
             books={books}
             navigate={navigate}
-            streak={streak}
+            onProgress={handleDailyProgress}
             onComplete={handleDailyComplete}
           />
         )}

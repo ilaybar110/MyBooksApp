@@ -374,3 +374,131 @@ textarea.input-field {
   z-index: 50;
   backdrop-filter: blur(2px);
 }
+
+/* ─── Streak banner ─────────────────────────────────────── */
+.streak-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(196, 147, 58, 0.22);
+  background: linear-gradient(135deg, rgba(196, 147, 58, 0.10) 0%, rgba(196, 147, 58, 0.03) 100%);
+  position: relative;
+  overflow: hidden;
+  /* Promote once so the glow sweep doesn't repaint the whole card. */
+  will-change: transform;
+}
+
+.streak-banner.is-done {
+  border-color: rgba(196, 147, 58, 0.45);
+}
+
+/* One-shot celebration: a light sweep across the card. */
+.streak-banner.is-celebrating::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(196, 147, 58, 0.35) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: streakSweep 1100ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+@keyframes streakSweep {
+  to { transform: translateX(100%); }
+}
+
+.streak-flame {
+  font-size: 30px;
+  line-height: 1;
+  flex-shrink: 0;
+  transform-origin: 50% 85%;
+  filter: grayscale(0.75);
+  opacity: 0.55;
+  transition: filter 400ms ease, opacity 400ms ease;
+}
+.streak-flame.is-lit {
+  filter: grayscale(0);
+  opacity: 1;
+  animation: flameFlicker 2.4s ease-in-out infinite;
+}
+@keyframes flameFlicker {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25%      { transform: scale(1.09) rotate(-3deg); }
+  50%      { transform: scale(0.97) rotate(2deg); }
+  75%      { transform: scale(1.05) rotate(-1deg); }
+}
+.streak-banner.is-celebrating .streak-flame {
+  animation: flamePop 700ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes flamePop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.55) rotate(-8deg); }
+  100% { transform: scale(1); }
+}
+
+.streak-count {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+  flex-shrink: 0;
+}
+.streak-number {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent-favorite);
+  font-variant-numeric: tabular-nums;
+}
+.streak-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.streak-progress {
+  margin-inline-start: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  min-width: 96px;
+}
+.streak-track {
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(196, 147, 58, 0.18);
+  overflow: hidden;
+}
+.streak-fill {
+  height: 100%;
+  width: 100%;
+  border-radius: 3px;
+  background: var(--accent-favorite);
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+[dir='rtl'] .streak-fill { transform-origin: right center; }
+
+.streak-status {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.streak-best {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streak-flame.is-lit,
+  .streak-banner.is-celebrating .streak-flame { animation: none; }
+  .streak-banner.is-celebrating::after { display: none; }
+  .streak-fill { transition: none; }
+}
