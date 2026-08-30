@@ -29,16 +29,15 @@ function mulberry32(seed) {
  * showed different quotes depending on how the app was opened. Seeding from
  * the date makes every device agree without having to share the choice.
  *
- * The pool is sorted by id first so the result cannot depend on the order the
- * highlights happen to sit in.
+ * Every highlight is eligible; favourites carry no weight. The pool is sorted
+ * by id first so the result cannot depend on the order the highlights happen
+ * to sit in.
  */
 export function pickDailyFive(highlights, dateStr, count = COUNT) {
   if (!highlights?.length) return [];
 
-  const favourites = highlights.filter(h => h.isFavorite);
-  const pool = favourites.length >= count ? favourites : highlights;
-
-  const ordered = [...pool].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  // Every quote is eligible — favourites get no preference.
+  const ordered = [...highlights].sort((a, b) => String(a.id).localeCompare(String(b.id)));
 
   const random = mulberry32(hashString(dateStr));
   for (let i = ordered.length - 1; i > 0; i--) {
