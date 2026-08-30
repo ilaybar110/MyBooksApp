@@ -42,19 +42,47 @@ export default function AllHighlightsPage({ navigate, pageParams = {} }) {
     return () => document.removeEventListener('visibilitychange', handler);
   }, [loadData]);
 
+  // A filter or search left over from an earlier visit would hide the target
+  // entirely, so clear them rather than scrolling to a card that isn't there.
+  useEffect(() => {
+    const targetId = pageParams.highlightId;
+    if (!targetId) return;
+    if (!highlights.some(h => h.id === targetId)) return;
+    if (filtered.some(h => h.id === targetId)) return;
+    setFilterFavorites(false);
+    setFilterTag(null);
+    setFilterBookId(null);
+    setSearchQuery('');
+    setDebouncedQuery('');
+  }, [pageParams.highlightId, highlights, filtered]);
+
   useEffect(() => {
     const targetId = pageParams.highlightId;
     if (!targetId || flashedRef.current === targetId) return;
-    const frame = requestAnimationFrame(() => {
+
+    let raf;
+    let cancelled = false;
+    // The list is populated by a separate effect, so the card is often not
+    // mounted on the first frame. Keep looking until it appears instead of
+    // giving up silently — that race was why this only worked sometimes.
+    const deadline = performance.now() + 3000;
+
+    const tryScroll = () => {
+      if (cancelled) return;
       const el = cardRefs.current[targetId];
-      if (!el) return;
-      flashedRef.current = targetId;
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('hotd-flash');
-      setTimeout(() => el.classList.remove('hotd-flash'), 1600);
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [pageParams.highlightId]);
+      if (el) {
+        flashedRef.current = targetId;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('hotd-flash');
+        setTimeout(() => el.classList.remove('hotd-flash'), 1600);
+        return;
+      }
+      if (performance.now() < deadline) raf = requestAnimationFrame(tryScroll);
+    };
+
+    raf = requestAnimationFrame(tryScroll);
+    return () => { cancelled = true; cancelAnimationFrame(raf); };
+  }, [pageParams.highlightId, filtered]);
 
   const getBookTitle = (bookId) => {
     const book = books.find(b => b.id === bookId);

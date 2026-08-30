@@ -409,35 +409,6 @@ textarea.input-field {
   to { transform: translateX(100%); }
 }
 
-.streak-flame {
-  font-size: 30px;
-  line-height: 1;
-  flex-shrink: 0;
-  transform-origin: 50% 85%;
-  filter: grayscale(0.75);
-  opacity: 0.55;
-  transition: filter 400ms ease, opacity 400ms ease;
-}
-.streak-flame.is-lit {
-  filter: grayscale(0);
-  opacity: 1;
-  animation: flameFlicker 2.4s ease-in-out infinite;
-}
-@keyframes flameFlicker {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  25%      { transform: scale(1.09) rotate(-3deg); }
-  50%      { transform: scale(0.97) rotate(2deg); }
-  75%      { transform: scale(1.05) rotate(-1deg); }
-}
-.streak-banner.is-celebrating .streak-flame {
-  animation: flamePop 700ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes flamePop {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.55) rotate(-8deg); }
-  100% { transform: scale(1); }
-}
-
 .streak-count {
   display: flex;
   flex-direction: column;
@@ -448,8 +419,22 @@ textarea.input-field {
   font-family: 'Lora', Georgia, serif;
   font-size: 28px;
   font-weight: 700;
-  color: var(--accent-favorite);
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+  display: inline-block;
+  transform-origin: left center;
+  transition: color 400ms ease;
+}
+.streak-banner.is-done .streak-number {
+  color: var(--accent-favorite);
+}
+.streak-banner.is-celebrating .streak-number {
+  animation: streakPop 700ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes streakPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.35); }
+  100% { transform: scale(1); }
 }
 .streak-label {
   font-family: 'DM Sans', sans-serif;
@@ -497,8 +482,7 @@ textarea.input-field {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .streak-flame.is-lit,
-  .streak-banner.is-celebrating .streak-flame { animation: none; }
+  .streak-banner.is-celebrating .streak-number { animation: none; }
   .streak-banner.is-celebrating::after { display: none; }
   .streak-fill { transition: none; }
 }

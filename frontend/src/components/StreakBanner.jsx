@@ -58,8 +58,6 @@ export default function StreakBanner({ streak, readCount = 0, total = 0 }) {
       role="status"
       aria-label={`${current} day reading streak. ${done ? 'Read today.' : `${readCount} of ${total} quotes read today.`}`}
     >
-      <span className={`streak-flame${done ? ' is-lit' : ''}`} aria-hidden="true">🔥</span>
-
       <div className="streak-count">
         <span className="streak-number">{shown}</span>
         <span className="streak-label">

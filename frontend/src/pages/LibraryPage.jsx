@@ -75,7 +75,7 @@ export default function LibraryPage({ navigate }) {
     } else if (result.usedFreeze) {
       showToast('❄️ Streak freeze used — streak saved');
     } else {
-      showToast(`🔥 ${result.current} day streak!`);
+      showToast(`${result.current} day streak!`);
     }
   }, []);
 
