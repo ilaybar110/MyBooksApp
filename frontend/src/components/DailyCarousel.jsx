@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { isHebrew, getTextDirection } from '../utils/helpers.js';
 
-export default function DailyCarousel({ highlights, books, navigate, streak, onComplete }) {
+export default function DailyCarousel({ highlights, books, navigate, onProgress, onComplete }) {
   const scrollRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   // Reaching the last card marks the day read — only ever once per mount.
@@ -17,6 +17,7 @@ export default function DailyCarousel({ highlights, books, navigate, streak, onC
           if (entry.isIntersecting) {
             const index = cards.indexOf(entry.target);
             setActiveIndex(index);
+            onProgress?.(index);
             if (index === highlights.length - 1 && !completedRef.current) {
               completedRef.current = true;
               onComplete?.();
@@ -28,7 +29,7 @@ export default function DailyCarousel({ highlights, books, navigate, streak, onC
     );
     cards.forEach(card => observer.observe(card));
     return () => observer.disconnect();
-  }, [highlights, onComplete]);
+  }, [highlights, onProgress, onComplete]);
 
   const scrollToCard = (index) => {
     const container = scrollRef.current;
@@ -47,35 +48,11 @@ export default function DailyCarousel({ highlights, books, navigate, streak, onC
         <p style={{ margin: 0, fontSize: '10px', fontWeight: 700, color: '#C4933A', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
           ✦ Highlights of the Day
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {streak?.current > 0 && (
-            <span
-              title={streak.doneToday ? 'Read today — streak safe' : "Swipe to the last quote to keep your streak"}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px',
-                fontSize: '11px',
-                fontWeight: 700,
-                fontFamily: 'DM Sans, sans-serif',
-                padding: '2px 8px',
-                borderRadius: '10px',
-                border: '1px solid rgba(196,147,58,0.25)',
-                background: streak.doneToday ? 'rgba(196,147,58,0.14)' : 'transparent',
-                color: streak.doneToday ? '#C4933A' : 'var(--text-muted)',
-                opacity: streak.doneToday ? 1 : 0.65,
-                transition: 'all 250ms ease',
-              }}
-            >
-              🔥 {streak.current}
-            </span>
-          )}
-          {highlights.length > 1 && (
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'DM Sans, sans-serif' }}>
-              {activeIndex + 1} / {highlights.length}
-            </span>
-          )}
-        </div>
+        {highlights.length > 1 && (
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+            {activeIndex + 1} / {highlights.length}
+          </span>
+        )}
       </div>
 
       {/* Scroll container */}
