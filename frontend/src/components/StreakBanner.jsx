@@ -3,10 +3,13 @@ import React, { useEffect, useRef, useState } from 'react';
 const prefersReducedMotion = () =>
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
-/** Counts from 0 up to `value` with an ease-out curve. */
+/**
+ * Counts up to `value` with an ease-out curve — from 0 on first mount, then
+ * from the previous value whenever it changes.
+ */
 function useCountUp(value, duration = 800) {
-  const [shown, setShown] = useState(value);
-  const fromRef = useRef(value);
+  const [shown, setShown] = useState(0);
+  const fromRef = useRef(0);
 
   useEffect(() => {
     const from = fromRef.current;
