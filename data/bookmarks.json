@@ -961,10 +961,10 @@
     "theme": "light"
   },
   "streak": {
-    "current": 1,
-    "longest": 1,
-    "lastCompletedDate": "2026-08-30",
-    "lastFreezeDate": null
+    "current": 2,
+    "longest": 2,
+    "lastCompletedDate": "2026-09-01",
+    "lastFreezeDate": "2026-09-01"
   },
-  "lastModified": 1788248917031
+  "lastModified": 1788248933248
 }
