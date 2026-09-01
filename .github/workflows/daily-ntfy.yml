@@ -2,11 +2,14 @@ name: Daily ntfy
 
 on:
   schedule:
-    # Hourly on purpose. GitHub's scheduled triggers are best-effort and are
-    # dropped under load — the previous 07:00/08:00 UTC pair produced zero runs.
-    # Attempting every hour survives a few misses; the script itself decides
-    # whether the current Jerusalem hour is a reminder slot.
-    - cron: '0 * * * *'
+    # Twice an hour, deliberately off the hour. GitHub drops scheduled runs
+    # under load and minute :00 is the most contended slot of all — an hourly
+    # '0 * * * *' produced 9 runs in two days instead of ~48. Odd minutes are
+    # far less congested, and two attempts an hour give more chances to land.
+    #
+    # The script does not assume it runs on time: it sends whenever a reminder
+    # is due inside the daily window, so any run that lands can do the job.
+    - cron: '9,39 * * * *'
   workflow_dispatch:
 
 # Never let a slow run collide with the next hour's attempt.
