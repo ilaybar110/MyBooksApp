@@ -962,10 +962,10 @@
     "theme": "light"
   },
   "streak": {
-    "current": 2,
-    "longest": 2,
-    "lastCompletedDate": "2026-09-01",
+    "current": 3,
+    "longest": 3,
+    "lastCompletedDate": "2026-09-02",
     "lastFreezeDate": "2026-09-01"
   },
-  "lastModified": 1788248999335
+  "lastModified": 1788361924343
 }
