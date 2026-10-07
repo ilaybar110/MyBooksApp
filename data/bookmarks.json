@@ -156,7 +156,8 @@
         "h_1791397816377_3ig9a",
         "h_1791397844747_9zp43",
         "h_1791397882842_fkzrz",
-        "h_1791397944369_f9igt"
+        "h_1791397944369_f9igt",
+        "h_1791398065961_0si7c"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1270,6 +1271,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-07T18:32:24.369Z",
       "updatedAt": 1791397944370
+    },
+    {
+      "id": "h_1791398065961_0si7c",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "Value does not exist. It’s a perception we reach with expectations we meet.",
+      "fullContext": "",
+      "pageNumber": 141,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-07T18:34:25.961Z",
+      "updatedAt": 1791398065962
     }
   ],
   "tags": [],
@@ -1284,5 +1297,5 @@
     "lastCompletedDate": "2026-10-07",
     "lastFreezeDate": "2026-09-29"
   },
-  "lastModified": 1791397944371
+  "lastModified": 1791398065963
 }
