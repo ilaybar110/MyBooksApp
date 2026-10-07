@@ -146,7 +146,8 @@
         "h_1791397161038_xrkpq",
         "h_1791397271679_56iie",
         "h_1791397334060_6g00d",
-        "h_1791397409002_bjq0l"
+        "h_1791397409002_bjq0l",
+        "h_1791397458966_dros1"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1140,6 +1141,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-07T18:23:29.002Z",
       "updatedAt": 1791397409004
+    },
+    {
+      "id": "h_1791397458966_dros1",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "Take care of your body; it is, after all, the only vehicle you get to own, the only vessel you'll use to explore the world and the only house you can ever truly call a home.",
+      "fullContext": "",
+      "pageNumber": 90,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-07T18:24:18.966Z",
+      "updatedAt": 1791397458967
     }
   ],
   "tags": [],
@@ -1154,5 +1167,5 @@
     "lastCompletedDate": "2026-10-07",
     "lastFreezeDate": "2026-09-29"
   },
-  "lastModified": 1791397409004
+  "lastModified": 1791397458968
 }
