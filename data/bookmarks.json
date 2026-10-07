@@ -150,7 +150,8 @@
         "h_1791397458966_dros1",
         "h_1791397531264_pea2v",
         "h_1791397618106_iufbc",
-        "h_1791397653419_jzmqw"
+        "h_1791397653419_jzmqw",
+        "h_1791397718356_gic81"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1192,6 +1193,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-07T18:27:33.419Z",
       "updatedAt": 1791397653421
+    },
+    {
+      "id": "h_1791397718356_gic81",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "A psychological moonshot is a relatively small investment that drastically improves the perception of something.",
+      "fullContext": "",
+      "pageNumber": 124,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-07T18:28:38.356Z",
+      "updatedAt": 1791397718359
     }
   ],
   "tags": [],
@@ -1206,5 +1219,5 @@
     "lastCompletedDate": "2026-10-07",
     "lastFreezeDate": "2026-09-29"
   },
-  "lastModified": 1791397653421
+  "lastModified": 1791397718359
 }
