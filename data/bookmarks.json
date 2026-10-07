@@ -157,7 +157,8 @@
         "h_1791397844747_9zp43",
         "h_1791397882842_fkzrz",
         "h_1791397944369_f9igt",
-        "h_1791398065961_0si7c"
+        "h_1791398065961_0si7c",
+        "h_1791398089551_gcspr"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1283,6 +1284,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-07T18:34:25.961Z",
       "updatedAt": 1791398065962
+    },
+    {
+      "id": "h_1791398089551_gcspr",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "Anchoring is a cognitive bias where individuals rely too heavily on seemingly irrelevant information (the 'anchor) when making decisions.",
+      "fullContext": "",
+      "pageNumber": 150,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-07T18:34:49.551Z",
+      "updatedAt": 1791398089552
     }
   ],
   "tags": [],
@@ -1297,5 +1310,5 @@
     "lastCompletedDate": "2026-10-07",
     "lastFreezeDate": "2026-09-29"
   },
-  "lastModified": 1791398065963
+  "lastModified": 1791398089553
 }
