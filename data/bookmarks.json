@@ -147,7 +147,8 @@
         "h_1791397271679_56iie",
         "h_1791397334060_6g00d",
         "h_1791397409002_bjq0l",
-        "h_1791397458966_dros1"
+        "h_1791397458966_dros1",
+        "h_1791397531264_pea2v"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1153,6 +1154,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-07T18:24:18.966Z",
       "updatedAt": 1791397458967
+    },
+    {
+      "id": "h_1791397531264_pea2v",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "A brand's publicity is defined more by its useless absurdity than its useful practicalities; the most absurd thing about you says everything about you.",
+      "fullContext": "",
+      "pageNumber": 97,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-07T18:25:31.264Z",
+      "updatedAt": 1791397531269
     }
   ],
   "tags": [],
@@ -1167,5 +1180,5 @@
     "lastCompletedDate": "2026-10-07",
     "lastFreezeDate": "2026-09-29"
   },
-  "lastModified": 1791397458968
+  "lastModified": 1791397531270
 }
