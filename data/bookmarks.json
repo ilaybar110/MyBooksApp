@@ -136,7 +136,8 @@
       "highlights": [
         "h_1791395051076_ubtrd",
         "h_1791396244094_4v4y0",
-        "h_1791396338857_epzsa"
+        "h_1791396338857_epzsa",
+        "h_1791396562596_db917"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1010,6 +1011,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-07T18:05:38.857Z",
       "updatedAt": 1791396338859
+    },
+    {
+      "id": "h_1791396562596_db917",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "Do the thing you fear, and keep on doing it. That is the quickest and surest way ever yet discovered to conquer fear",
+      "fullContext": "",
+      "pageNumber": 40,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-07T18:09:22.596Z",
+      "updatedAt": 1791396562598
     }
   ],
   "tags": [],
@@ -1024,5 +1037,5 @@
     "lastCompletedDate": "2026-10-07",
     "lastFreezeDate": "2026-09-29"
   },
-  "lastModified": 1791396338859
+  "lastModified": 1791396562598
 }
