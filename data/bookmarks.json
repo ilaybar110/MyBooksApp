@@ -158,7 +158,8 @@
         "h_1791397882842_fkzrz",
         "h_1791397944369_f9igt",
         "h_1791398065961_0si7c",
-        "h_1791398089551_gcspr"
+        "h_1791398089551_gcspr",
+        "h_1791398128117_y67ao"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1296,6 +1297,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-07T18:34:49.551Z",
       "updatedAt": 1791398089552
+    },
+    {
+      "id": "h_1791398128117_y67ao",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "In the context of the Goldilocks effect, by presenting two\n'extreme options next to the option you're hoping to sell, you can make the middle option appear more attractive or reasonable.\nIn most contexts the 'true' value of something is nothing more than opinion - so we search for cues within context and pricing to help us make our decisions; when the Goldilocks effect is in play, we perceive the most expensive option as an excessive luxury. In contrast, we see the cheapest option as risky, insufficient and lower quality, and in the middle we have what we assume is the best option - we believe it must have the combined benefits of the other two: it's a safe bet, cost-efficient and of good quality.",
+      "fullContext": "",
+      "pageNumber": 151,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-07T18:35:28.117Z",
+      "updatedAt": 1791398128118
     }
   ],
   "tags": [],
@@ -1310,5 +1323,5 @@
     "lastCompletedDate": "2026-10-07",
     "lastFreezeDate": "2026-09-29"
   },
-  "lastModified": 1791398089553
+  "lastModified": 1791398128119
 }
