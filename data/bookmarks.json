@@ -143,7 +143,8 @@
         "h_1791396940159_3a86m",
         "h_1791397019702_wwgoz",
         "h_1791397099745_21sqb",
-        "h_1791397161038_xrkpq"
+        "h_1791397161038_xrkpq",
+        "h_1791397271679_56iie"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1101,6 +1102,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-07T18:19:21.038Z",
       "updatedAt": 1791397161040
+    },
+    {
+      "id": "h_1791397271679_56iie",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "Research continues to reveal that your self-story and the \"mental toughness', grit' or 'resilience' that you have is more important than anything else for achieving your goals in business and in life. That's very good to know because while you can't do much about your physicality or the innate abilities you are born with, you can do a lot to develop your self-story.",
+      "fullContext": "",
+      "pageNumber": 68,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-07T18:21:11.679Z",
+      "updatedAt": 1791397271680
     }
   ],
   "tags": [],
@@ -1115,5 +1128,5 @@
     "lastCompletedDate": "2026-10-07",
     "lastFreezeDate": "2026-09-29"
   },
-  "lastModified": 1791397161040
+  "lastModified": 1791397271681
 }
