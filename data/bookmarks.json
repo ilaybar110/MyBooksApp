@@ -140,7 +140,8 @@
         "h_1791396562596_db917",
         "h_1791396834007_zfjru",
         "h_1791396898648_9jya4",
-        "h_1791396940159_3a86m"
+        "h_1791396940159_3a86m",
+        "h_1791397019702_wwgoz"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1062,6 +1063,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-07T18:15:40.159Z",
       "updatedAt": 1791396940160
+    },
+    {
+      "id": "h_1791397019702_wwgoz",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "Why? Questions, unlike statements, elicit an active response - they make people think. That's why researchers at Ohio State University have found that when the facts are clearly on your side, questions become extremely more effective than simply making a statement.",
+      "fullContext": "",
+      "pageNumber": 58,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-07T18:16:59.702Z",
+      "updatedAt": 1791397019703
     }
   ],
   "tags": [],
@@ -1076,5 +1089,5 @@
     "lastCompletedDate": "2026-10-07",
     "lastFreezeDate": "2026-09-29"
   },
-  "lastModified": 1791396940160
+  "lastModified": 1791397019704
 }
