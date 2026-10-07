@@ -160,7 +160,8 @@
         "h_1791398065961_0si7c",
         "h_1791398089551_gcspr",
         "h_1791398128117_y67ao",
-        "h_1791398162680_z6jhe"
+        "h_1791398162680_z6jhe",
+        "h_1791398226561_p7mcm"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1322,6 +1323,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-07T18:36:02.680Z",
       "updatedAt": 1791398162682
+    },
+    {
+      "id": "h_1791398226561_p7mcm",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "More evidence of the effects of ownership comes from a study in 1984, where researchers gifted participants either a lottery ticket or two dollars. Later, each of them was offered an opportunity to swap the lottery ticket for the money or the money for the lottery ticket. Only a few participants were willing to make the trade.",
+      "fullContext": "",
+      "pageNumber": 160,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-07T18:37:06.561Z",
+      "updatedAt": 1791398226563
     }
   ],
   "tags": [],
@@ -1336,5 +1349,5 @@
     "lastCompletedDate": "2026-10-07",
     "lastFreezeDate": "2026-09-29"
   },
-  "lastModified": 1791398162682
+  "lastModified": 1791398226564
 }
