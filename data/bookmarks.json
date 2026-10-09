@@ -1487,10 +1487,10 @@
     "theme": "light"
   },
   "streak": {
-    "current": 2,
+    "current": 3,
     "longest": 4,
-    "lastCompletedDate": "2026-10-07",
-    "lastFreezeDate": "2026-09-29"
+    "lastCompletedDate": "2026-10-09",
+    "lastFreezeDate": "2026-10-09"
   },
-  "lastModified": 1791536534195
+  "lastModified": 1791552364743
 }
