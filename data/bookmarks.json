@@ -189,7 +189,8 @@
         "h_1791553182523_89uu5"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
-      "updatedAt": 1791393909143
+      "updatedAt": 1791553260623,
+      "status": "finished"
     }
   ],
   "highlights": [
@@ -1674,5 +1675,5 @@
     "lastCompletedDate": "2026-10-09",
     "lastFreezeDate": "2026-10-09"
   },
-  "lastModified": 1791553248832
+  "lastModified": 1791553260623
 }
