@@ -123,8 +123,9 @@
         "h_1779463843324_7oi98"
       ],
       "dateAdded": "2026-04-11T14:41:33.158Z",
-      "updatedAt": 1775918505016,
-      "status": "reading"
+      "updatedAt": 1791553275981,
+      "status": "reading",
+      "rating": 3
     },
     {
       "id": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
@@ -1676,5 +1677,5 @@
     "lastCompletedDate": "2026-10-09",
     "lastFreezeDate": "2026-10-09"
   },
-  "lastModified": 1791553268003
+  "lastModified": 1791553275981
 }
