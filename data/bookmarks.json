@@ -185,7 +185,8 @@
         "h_1791552770398_fc3s2",
         "h_1791552810515_whfgp",
         "h_1791553051705_8gfex",
-        "h_1791553100124_qjixx"
+        "h_1791553100124_qjixx",
+        "h_1791553182523_89uu5"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1647,6 +1648,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-09T13:38:20.124Z",
       "updatedAt": 1791553100126
+    },
+    {
+      "id": "h_1791553182523_89uu5",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "humans are not the rational, logical and analytical creatures we presume ourselves to be. We are emotional, illogical and driven by a multitude of emotional impulses, fears, desires, insecurities, and childhood experiences.",
+      "fullContext": "",
+      "pageNumber": 328,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-09T13:39:42.523Z",
+      "updatedAt": 1791553182527
     }
   ],
   "tags": [],
@@ -1661,5 +1674,5 @@
     "lastCompletedDate": "2026-10-09",
     "lastFreezeDate": "2026-10-09"
   },
-  "lastModified": 1791553100126
+  "lastModified": 1791553182528
 }
