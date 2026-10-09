@@ -103,7 +103,8 @@
       ],
       "dateAdded": "2026-04-06T15:17:47.329Z",
       "status": "finished",
-      "updatedAt": 1775905509634
+      "updatedAt": 1791553281192,
+      "rating": 3
     },
     {
       "id": "1278ec4b-aa65-47a5-bbbe-694aeeecd4ed",
@@ -1677,5 +1678,5 @@
     "lastCompletedDate": "2026-10-09",
     "lastFreezeDate": "2026-10-09"
   },
-  "lastModified": 1791553275981
+  "lastModified": 1791553281192
 }
