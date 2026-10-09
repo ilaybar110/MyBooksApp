@@ -179,7 +179,8 @@
         "h_1791552547715_p5kjv",
         "h_1791552569039_jrt5h",
         "h_1791552607638_0mnyf",
-        "h_1791552626785_i35dd"
+        "h_1791552626785_i35dd",
+        "h_1791552684608_xax7n"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1569,6 +1570,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-09T13:30:26.786Z",
       "updatedAt": 1791552626787
+    },
+    {
+      "id": "h_1791552684608_xax7n",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "I'm really bad at doing things I don't enjoy, and that has proven to be a superpower because it's allowed me to double and triple down on the few things I'm both good at and enjoy.",
+      "fullContext": "",
+      "pageNumber": 285,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-09T13:31:24.608Z",
+      "updatedAt": 1791552684614
     }
   ],
   "tags": [],
@@ -1583,5 +1596,5 @@
     "lastCompletedDate": "2026-10-09",
     "lastFreezeDate": "2026-10-09"
   },
-  "lastModified": 1791552626787
+  "lastModified": 1791552684614
 }
