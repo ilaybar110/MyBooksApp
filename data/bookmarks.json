@@ -1666,7 +1666,7 @@
   "settings": {
     "defaultLanguage": "en",
     "sortOrder": "dateAdded",
-    "theme": "light"
+    "theme": "dark"
   },
   "streak": {
     "current": 3,
@@ -1674,5 +1674,5 @@
     "lastCompletedDate": "2026-10-09",
     "lastFreezeDate": "2026-10-09"
   },
-  "lastModified": 1791553182528
+  "lastModified": 1791553248832
 }
