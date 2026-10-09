@@ -173,7 +173,8 @@
         "h_1791535650318_z8d34",
         "h_1791535769722_yvg1h",
         "h_1791536534194_fyxtc",
-        "h_1791552434479_j1cgd"
+        "h_1791552434479_j1cgd",
+        "h_1791552469501_r6oz2"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1491,6 +1492,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-09T13:27:14.479Z",
       "updatedAt": 1791552434481
+    },
+    {
+      "id": "h_1791552469501_r6oz2",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "The story highlighted how people often overlook value in certain contexts, raising questions about how good we truly are at appreciating and rewarding talent in our daily lives.\nThis also serves as an apt metaphor for my own professional life; I had previously been selling my skills in a subway station - and just by moving the same skills to a prestigious concert hall, I earned ten times more.",
+      "fullContext": "",
+      "pageNumber": 263,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-09T13:27:49.502Z",
+      "updatedAt": 1791552469503
     }
   ],
   "tags": [],
@@ -1505,5 +1518,5 @@
     "lastCompletedDate": "2026-10-09",
     "lastFreezeDate": "2026-10-09"
   },
-  "lastModified": 1791552434481
+  "lastModified": 1791552469504
 }
