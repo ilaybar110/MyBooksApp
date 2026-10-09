@@ -162,7 +162,8 @@
         "h_1791398128117_y67ao",
         "h_1791398162680_z6jhe",
         "h_1791398226561_p7mcm",
-        "h_1791534588259_uenfu"
+        "h_1791534588259_uenfu",
+        "h_1791535095670_rj647"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1348,6 +1349,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-09T08:29:48.259Z",
       "updatedAt": 1791534588260
+    },
+    {
+      "id": "h_1791535095670_rj647",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "The woman's clever idea was to take the joy out of the thing the children loved doing and were doing for free. The bigger lesson is clear, though: it's possible to replace a genuine motivation with a synthetic one. This phenomenon is also known as 'motivation crowding: if you attach a financial reward to ideas, it can interfere with or even eliminate people's gemune creative energy and ambition.",
+      "fullContext": "",
+      "pageNumber": 188,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-09T08:38:15.670Z",
+      "updatedAt": 1791535095672
     }
   ],
   "tags": [],
@@ -1362,5 +1375,5 @@
     "lastCompletedDate": "2026-10-07",
     "lastFreezeDate": "2026-09-29"
   },
-  "lastModified": 1791534588261
+  "lastModified": 1791535095672
 }
