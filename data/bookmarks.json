@@ -172,7 +172,8 @@
         "h_1791535585746_v8r7p",
         "h_1791535650318_z8d34",
         "h_1791535769722_yvg1h",
-        "h_1791536534194_fyxtc"
+        "h_1791536534194_fyxtc",
+        "h_1791552434479_j1cgd"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1478,6 +1479,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-09T09:02:14.194Z",
       "updatedAt": 1791536534195
+    },
+    {
+      "id": "h_1791552434479_j1cgd",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "The truth is, the market you decide to sell your skills in will determine how much you get paid far more than the skills themselves. Technical or medical writers in the engineering or biotech sectors earn higher salaries than writers in the media and publishing industries, even though the core skill of writing is the same.",
+      "fullContext": "",
+      "pageNumber": 261,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-09T13:27:14.479Z",
+      "updatedAt": 1791552434481
     }
   ],
   "tags": [],
@@ -1492,5 +1505,5 @@
     "lastCompletedDate": "2026-10-09",
     "lastFreezeDate": "2026-10-09"
   },
-  "lastModified": 1791552364743
+  "lastModified": 1791552434481
 }
