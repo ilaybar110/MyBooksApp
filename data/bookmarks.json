@@ -184,7 +184,8 @@
         "h_1791552741769_j434y",
         "h_1791552770398_fc3s2",
         "h_1791552810515_whfgp",
-        "h_1791553051705_8gfex"
+        "h_1791553051705_8gfex",
+        "h_1791553100124_qjixx"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1634,6 +1635,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-09T13:37:31.707Z",
       "updatedAt": 1791553051708
+    },
+    {
+      "id": "h_1791553100124_qjixx",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "Instead, the majority ranked 'recognition for good work' as the most crucial factor in motivating workers and promoting happiness. While recognition undoubtedly enhances an employee's inner work life, it is ultimately dependent upon achievements.",
+      "fullContext": "",
+      "pageNumber": 317,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-09T13:38:20.124Z",
+      "updatedAt": 1791553100126
     }
   ],
   "tags": [],
@@ -1648,5 +1661,5 @@
     "lastCompletedDate": "2026-10-09",
     "lastFreezeDate": "2026-10-09"
   },
-  "lastModified": 1791553051709
+  "lastModified": 1791553100126
 }
