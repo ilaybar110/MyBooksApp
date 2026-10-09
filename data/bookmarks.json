@@ -166,7 +166,8 @@
         "h_1791535095670_rj647",
         "h_1791535201531_l14ls",
         "h_1791535237119_r6z15",
-        "h_1791535282105_t2elw"
+        "h_1791535282105_t2elw",
+        "h_1791535353568_40eu9"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1400,6 +1401,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-09T08:41:22.105Z",
       "updatedAt": 1791535282106
+    },
+    {
+      "id": "h_1791535353568_40eu9",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "*The only way you go forward, is because you cannot go back? I couldn't go back. I had nowhere back' to go. Not having a Plan B became the most incredible motivational force in my life. When the human mind excludes all other possibilities and fixates on a single path, that path draws in every available ounce of your passion, perseverance and power, leaving no room for hesitation or deviation.",
+      "fullContext": "",
+      "pageNumber": 219,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-09T08:42:33.568Z",
+      "updatedAt": 1791535353571
     }
   ],
   "tags": [],
@@ -1414,5 +1427,5 @@
     "lastCompletedDate": "2026-10-07",
     "lastFreezeDate": "2026-09-29"
   },
-  "lastModified": 1791535282106
+  "lastModified": 1791535353572
 }
