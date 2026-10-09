@@ -177,7 +177,8 @@
         "h_1791552469501_r6oz2",
         "h_1791552521347_unwqk",
         "h_1791552547715_p5kjv",
-        "h_1791552569039_jrt5h"
+        "h_1791552569039_jrt5h",
+        "h_1791552607638_0mnyf"
       ],
       "dateAdded": "2026-10-07T17:25:09.142Z",
       "updatedAt": 1791393909143
@@ -1543,6 +1544,18 @@
       "isEdited": false,
       "dateAdded": "2026-10-09T13:29:29.039Z",
       "updatedAt": 1791552569042
+    },
+    {
+      "id": "h_1791552607638_0mnyf",
+      "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
+      "markedText": "THE DISCIPLINE EQUATION:\nDEATH, TIME AND DISCIPLINE\nSuccess is not complicated, it's not magic and it's not a mystery. Luck, chance and fortune may give you a wonderful tailwind, but the rest will be a by-product of how you choose to use your time. Most of it hinges on finding something that captivates us enough to persevere daily and a goal that resonates profoundly enough to remain steadfast in our pursuit.\nSuccess is the embodiment of discipline - though it may not be easy, its core principles are beautifully simple.",
+      "fullContext": "",
+      "pageNumber": 278,
+      "isFavorite": false,
+      "tags": [],
+      "isEdited": false,
+      "dateAdded": "2026-10-09T13:30:07.638Z",
+      "updatedAt": 1791552607640
     }
   ],
   "tags": [],
@@ -1557,5 +1570,5 @@
     "lastCompletedDate": "2026-10-09",
     "lastFreezeDate": "2026-10-09"
   },
-  "lastModified": 1791552569042
+  "lastModified": 1791552607640
 }
