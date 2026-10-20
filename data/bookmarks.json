@@ -1287,14 +1287,14 @@
     {
       "id": "h_1791397882842_fkzrz",
       "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
-      "markedText": "It's been repeatedly proven that what motivates us most is now close we are to achieving a goal: we work faster the closer we are to success.",
+      "markedText": "It's been repeatedly proven that what motivates us most is now close we are to achieving a goal: we work faster the  closer we are to success.",
       "fullContext": "",
       "pageNumber": 131,
       "isFavorite": false,
       "tags": [],
-      "isEdited": false,
+      "isEdited": true,
       "dateAdded": "2026-10-07T18:31:22.842Z",
-      "updatedAt": 1791397882844
+      "updatedAt": 1792512305909
     },
     {
       "id": "h_1791397944369_f9igt",
@@ -1681,5 +1681,5 @@
     "lastCompletedDate": "2026-10-19",
     "lastFreezeDate": "2026-10-09"
   },
-  "lastModified": 1792512231464
+  "lastModified": 1792512305909
 }
