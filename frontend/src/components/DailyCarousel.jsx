@@ -1,11 +1,13 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { isHebrew, getTextDirection } from '../utils/helpers.js';
+import Modal from './Modal.jsx';
 
 export default function DailyCarousel({ highlights, books, navigate, onProgress, onComplete }) {
   const scrollRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   // Reaching the last card marks the day read — only ever once per mount.
   const completedRef = useRef(false);
+  const [contextHighlight, setContextHighlight] = useState(null);
 
   useEffect(() => {
     const container = scrollRef.current;
@@ -114,6 +116,39 @@ export default function DailyCarousel({ highlights, books, navigate, onProgress,
                 "
               </span>
 
+              {/* Context button */}
+              {h.fullContext && h.fullContext !== h.markedText && (
+                <button
+                  onClick={e => { e.stopPropagation(); setContextHighlight(h); }}
+                  onKeyDown={e => e.stopPropagation()}
+                  aria-label="Show context"
+                  title="Show context"
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: hebrew ? undefined : '10px',
+                    left: hebrew ? '10px' : undefined,
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    border: '1px solid rgba(196,147,58,0.5)',
+                    background: 'rgba(196,147,58,0.12)',
+                    color: '#C4933A',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    fontFamily: 'DM Sans, sans-serif',
+                    lineHeight: 1,
+                    padding: 0,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  C
+                </button>
+              )}
+
               {/* Quote text */}
               <p style={{
                 margin: '0 0 14px',
@@ -160,6 +195,26 @@ export default function DailyCarousel({ highlights, books, navigate, onProgress,
           );
         })}
       </div>
+
+      <Modal
+        isOpen={!!contextHighlight}
+        onClose={() => setContextHighlight(null)}
+        title="Context"
+      >
+        {contextHighlight && (
+          <p style={{
+            margin: 0,
+            fontSize: '15px',
+            lineHeight: 1.75,
+            color: 'var(--text-secondary)',
+            fontFamily: isHebrew(contextHighlight.fullContext) ? 'Assistant, sans-serif' : 'Source Serif 4, serif',
+            direction: getTextDirection(contextHighlight.fullContext),
+            textAlign: isHebrew(contextHighlight.fullContext) ? 'right' : 'left',
+          }}>
+            {contextHighlight.fullContext}
+          </p>
+        )}
+      </Modal>
 
       {/* Dot indicators */}
       {highlights.length > 1 && (
