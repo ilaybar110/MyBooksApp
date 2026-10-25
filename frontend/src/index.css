@@ -481,7 +481,54 @@ textarea.input-field {
   color: var(--text-muted);
 }
 
+/* Book-stack shelf: one spine per streak day, every 7th in gold. */
+.streak-shelf {
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  padding-bottom: 2px;
+}
+.shelf-books {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  padding-bottom: 2px;
+  border-bottom: 2px solid rgba(196, 147, 58, 0.35);
+}
+.shelf-more {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.spine {
+  width: 6px;
+  border-radius: 2px 2px 0 0;
+  background: #8B5A2B;
+  transform-origin: bottom center;
+  animation: spineIn 450ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  animation-delay: calc(var(--i) * 45ms + 200ms);
+}
+.spine-0 { background: #8B5A2B; }
+.spine-1 { background: #A8530E; }
+.spine-2 { background: #6F4A2E; }
+.spine-3 { background: #B8956E; }
+.spine.is-gold { background: var(--accent-favorite); }
+.spine.is-record {
+  background: var(--accent-favorite);
+  box-shadow: 0 0 8px rgba(224, 185, 92, 0.75);
+}
+@keyframes spineIn {
+  from { transform: scaleY(0); opacity: 0; }
+  to   { transform: scaleY(1); opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .spine { animation: none; }
   .streak-banner.is-celebrating .streak-number { animation: none; }
   .streak-banner.is-celebrating::after { display: none; }
   .streak-fill { transition: none; }

@@ -32,6 +32,34 @@ function useCountUp(value, duration = 800) {
   return shown;
 }
 
+const SHELF_MAX = 12;
+// Spine heights cycle through a fixed pattern so the shelf looks hand-stacked
+// but stays stable between renders.
+const SPINE_HEIGHTS = [26, 32, 22, 30, 36, 24, 34];
+
+function BookShelf({ current, isRecord }) {
+  if (current <= 0) return null;
+  const first = Math.max(1, current - SHELF_MAX + 1);
+  const spines = [];
+  for (let day = first; day <= current; day++) {
+    const gold = day % 7 === 0;
+    const isNewest = day === current;
+    spines.push(
+      <span
+        key={day}
+        className={`spine spine-${day % 4}${gold ? ' is-gold' : ''}${isNewest && isRecord ? ' is-record' : ''}`}
+        style={{ height: SPINE_HEIGHTS[day % SPINE_HEIGHTS.length], '--i': day - first }}
+      />
+    );
+  }
+  return (
+    <div className="streak-shelf" aria-hidden="true">
+      {first > 1 && <span className="shelf-more">+{first - 1}</span>}
+      <div className="shelf-books">{spines}</div>
+    </div>
+  );
+}
+
 export default function StreakBanner({ streak, readCount = 0, total = 0 }) {
   const current = streak?.current || 0;
   const longest = streak?.longest || 0;
@@ -64,6 +92,8 @@ export default function StreakBanner({ streak, readCount = 0, total = 0 }) {
           day{shown === 1 ? '' : 's'} in a row
         </span>
       </div>
+
+      <BookShelf current={current} isRecord={current >= longest && done} />
 
       <div className="streak-progress">
         <div className="streak-track" aria-hidden="true">
