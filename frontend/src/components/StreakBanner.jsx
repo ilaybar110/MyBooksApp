@@ -32,18 +32,25 @@ function useCountUp(value, duration = 800) {
   return shown;
 }
 
-const PER_SHELF = 50;
-const MIN_SHELVES = 4; // room for 200 days; more shelves appear beyond that
+const SHELF_MAX = 60; // a new shelf every 60 books
+// Books shrink as the streak grows: [slots per shelf, book height, gap] by tier.
+const TIERS = [
+  { slots: 15, height: 36, gap: 3 },
+  { slots: 30, height: 26, gap: 2 },
+  { slots: SHELF_MAX, height: 18, gap: 1 },
+];
 
-// One tiny book per streak day on a bookcase, with empty slots for the days
-// still to come. Every 7th book is gold, the newest glows on a record.
+// One tiny book per streak day, with empty slots only for the next stretch.
+// Every 7th book is gold, the newest glows on a record.
 function BookShelf({ current, isRecord }) {
-  const shelves = Math.max(MIN_SHELVES, Math.ceil((current + 1) / PER_SHELF));
+  const need = current + 1;
+  const tier = TIERS.find((t) => need <= t.slots) || TIERS[TIERS.length - 1];
+  const shelves = Math.ceil(need / tier.slots);
   const rows = [];
   for (let r = 0; r < shelves; r++) {
     const slots = [];
-    for (let c = 0; c < PER_SHELF; c++) {
-      const day = r * PER_SHELF + c + 1;
+    for (let c = 0; c < tier.slots; c++) {
+      const day = r * tier.slots + c + 1;
       if (day > current) {
         slots.push(<span key={day} className="slot" />);
         continue;
@@ -59,7 +66,15 @@ function BookShelf({ current, isRecord }) {
     }
     rows.push(<div key={r} className="shelf-row">{slots}</div>);
   }
-  return <div className="streak-shelf" aria-hidden="true">{rows}</div>;
+  return (
+    <div
+      className="streak-shelf"
+      aria-hidden="true"
+      style={{ '--row-h': `${tier.height}px`, '--gap': `${tier.gap}px` }}
+    >
+      {rows}
+    </div>
+  );
 }
 
 export default function StreakBanner({ streak, readCount = 0, total = 0 }) {

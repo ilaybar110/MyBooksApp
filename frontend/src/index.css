@@ -481,7 +481,7 @@ textarea.input-field {
   color: var(--text-muted);
 }
 
-/* Bookcase: one tiny book per streak day, empty slots for days to come. */
+/* Bookcase: one tiny book per streak day, a new shelf every 60. */
 .streak-banner { flex-wrap: wrap; }
 .streak-shelf {
   order: 3;
@@ -489,16 +489,35 @@ textarea.input-field {
   direction: ltr;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
   margin-top: 4px;
+  padding: 8px 6px 0;
+  border: 3px solid #4a3220;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  /* back panel with a little depth */
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.2));
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.5);
 }
 .shelf-row {
   display: flex;
   align-items: flex-end;
-  gap: 2px;
-  height: 15px;
+  gap: var(--gap, 1px);
+  height: var(--row-h, 18px);
   padding: 0 2px;
-  border-bottom: 2px solid #5a3d22;
+  /* wooden plank the books stand on */
+  position: relative;
+}
+.shelf-row::after {
+  content: '';
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  height: 6px;
+  background: linear-gradient(180deg, #7a5530, #4f3519);
+  border-radius: 0 0 2px 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 .slot {
   flex: 1 1 0;
