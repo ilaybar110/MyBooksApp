@@ -494,6 +494,9 @@ textarea.input-field {
 .shelf-books {
   display: flex;
   align-items: flex-end;
+  flex: 1;
+  min-width: 0;
+  justify-content: center;
   gap: 1px;
   padding: 0 3px 3px;
   border-bottom: 3px solid #5a3d22;
@@ -508,13 +511,16 @@ textarea.input-field {
 .spine {
   --c: #8B5A2B;
   position: relative;
-  flex-shrink: 0;
+  /* Books share the shelf: a 7-day streak gets chunky spines, 30 gets slim ones. */
+  flex: 1 1 0;
+  min-width: 3px;
+  max-width: 13px;
   border-radius: 2px 2px 1px 1px;
   background:
     /* top and bottom bands */
-    linear-gradient(rgba(255, 220, 150, 0.55), rgba(255, 220, 150, 0.55)) 0 6px / 100% 2px no-repeat,
-    linear-gradient(rgba(255, 220, 150, 0.55), rgba(255, 220, 150, 0.55)) 0 10px / 100% 1px no-repeat,
-    linear-gradient(rgba(255, 220, 150, 0.55), rgba(255, 220, 150, 0.55)) 0 calc(100% - 8px) / 100% 2px no-repeat,
+    linear-gradient(rgba(255, 220, 150, 0.55), rgba(255, 220, 150, 0.55)) 0 4px / 100% 2px no-repeat,
+    linear-gradient(rgba(255, 220, 150, 0.55), rgba(255, 220, 150, 0.55)) 0 8px / 100% 1px no-repeat,
+    linear-gradient(rgba(255, 220, 150, 0.55), rgba(255, 220, 150, 0.55)) 0 calc(100% - 6px) / 100% 2px no-repeat,
     /* title label */
     linear-gradient(rgba(255, 235, 190, 0.35), rgba(255, 235, 190, 0.35)) 50% 40% / 40% 34% no-repeat,
     var(--c);

@@ -32,11 +32,11 @@ function useCountUp(value, duration = 800) {
   return shown;
 }
 
-const SHELF_MAX = 7;
+const SHELF_MAX = 20;
 // Spine heights cycle through a fixed pattern so the shelf looks hand-stacked
 // but stays stable between renders.
-const SPINE_HEIGHTS = [38, 44, 34, 42, 46, 36, 40];
-const SPINE_WIDTHS = [12, 15, 11, 14, 13, 16, 12];
+const SPINE_HEIGHTS = [26, 32, 24, 30, 34, 27, 31];
+const SPINE_WIDTHS = [10, 14, 9, 12, 11, 15, 10];
 
 function BookShelf({ current, isRecord }) {
   if (current <= 0) return null;
@@ -51,7 +51,7 @@ function BookShelf({ current, isRecord }) {
         className={`spine spine-${day % 4}${gold ? ' is-gold' : ''}${isNewest && isRecord ? ' is-record' : ''}`}
         style={{
           height: SPINE_HEIGHTS[day % SPINE_HEIGHTS.length],
-          width: SPINE_WIDTHS[(day * 3) % SPINE_WIDTHS.length],
+          flexGrow: SPINE_WIDTHS[(day * 3) % SPINE_WIDTHS.length],
           '--i': day - first,
         }}
       />
