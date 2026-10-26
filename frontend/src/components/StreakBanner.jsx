@@ -32,6 +32,9 @@ function useCountUp(value, duration = 800) {
   return shown;
 }
 
+// Thickness varies from book to book so the row doesn't look like a bar chart.
+const BOOK_WEIGHTS = [1, 1.35, 0.8, 1.15, 0.9, 1.5, 1.05];
+
 const SHELF_MAX = 60; // a new shelf every 60 books
 // Books shrink as the streak grows: [slots per shelf, book height, gap] by tier.
 const TIERS = [
@@ -56,12 +59,18 @@ function BookShelf({ current, isRecord }) {
         continue;
       }
       const cls = [
-        'slot', 'book', `book-${day % 5}`, `tall-${day % 4}`,
+        'slot', 'book', `book-${day % 7}`, `tall-${day % 4}`,
         day % 7 === 0 && 'is-gold',
         day === current && isRecord && 'is-record',
+        // The newest book leans on the empty space beside it, like a real shelf.
+        day === current && c < tier.slots - 1 && 'is-lean',
       ].filter(Boolean).join(' ');
       slots.push(
-        <span key={day} className={cls} style={{ '--i': Math.min(day, 100) }} />
+        <span
+          key={day}
+          className={cls}
+          style={{ '--i': Math.min(day, 100), flexGrow: BOOK_WEIGHTS[(day * 5) % BOOK_WEIGHTS.length] }}
+        />
       );
     }
     rows.push(<div key={r} className="shelf-row">{slots}</div>);

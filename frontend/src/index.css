@@ -508,6 +508,17 @@ textarea.input-field {
   /* wooden plank the books stand on */
   position: relative;
 }
+.shelf-row::before {
+  /* brass bookend holding the row */
+  content: '';
+  position: absolute;
+  left: -4px;
+  bottom: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(90deg, #9c7a3c, #6b5226);
+  border-radius: 1px 1px 0 0;
+}
 .shelf-row::after {
   content: '';
   position: absolute;
@@ -527,29 +538,47 @@ textarea.input-field {
   /* empty slot: a faint ghost of a book */
   background: rgba(196, 147, 58, 0.07);
 }
+/* Cloth-bound spine: rounded shading, headband, raised bands and a title label. */
 .book {
   --c: #8B5A2B;
+  --band: rgba(255, 225, 160, 0.55);
+  border-radius: 2px 2px 0 0;
   background:
-    linear-gradient(rgba(255, 220, 150, 0.5), rgba(255, 220, 150, 0.5)) 0 2px / 100% 1px no-repeat,
+    /* headband and tailband */
+    linear-gradient(var(--band), var(--band)) 0 7% / 100% 6% no-repeat,
+    linear-gradient(var(--band), var(--band)) 0 17% / 100% 3% no-repeat,
+    linear-gradient(var(--band), var(--band)) 0 90% / 100% 5% no-repeat,
+    /* title label */
+    linear-gradient(rgba(250, 232, 190, 0.5), rgba(250, 232, 190, 0.5)) 50% 38% / 46% 34% no-repeat,
+    /* rounded-spine shading, lit from the left */
+    linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 35%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.4) 100%),
     var(--c);
-  transform-origin: bottom center;
+  box-shadow: 1px 0 1px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transform-origin: bottom left;
   animation: bookIn 380ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
   animation-delay: calc(var(--i) * 10ms + 200ms);
 }
 .book-0 { --c: #8B5A2B; }
-.book-1 { --c: #A8530E; }
-.book-2 { --c: #5E4A38; }
-.book-3 { --c: #B07A3C; }
-.book-4 { --c: #7A3E1D; }
+.book-1 { --c: #9A4A12; }
+.book-2 { --c: #5C4636; }
+.book-3 { --c: #A9783F; }
+.book-4 { --c: #7A2F26; }
+.book-5 { --c: #3F5240; }
+.book-6 { --c: #34495A; }
 .tall-0 { height: 100%; }
 .tall-1 { height: 82%; }
 .tall-2 { height: 92%; }
 .tall-3 { height: 72%; }
-.book.is-gold { --c: var(--accent-favorite); }
+.book.is-gold {
+  --c: #D4A847;
+  --band: rgba(90, 55, 10, 0.5);
+}
+.book.is-lean { rotate: 9deg; }
 .book.is-record {
-  --c: var(--accent-favorite);
+  --c: #E0B95C;
+  --band: rgba(90, 55, 10, 0.5);
   height: 100%;
-  box-shadow: 0 0 8px rgba(224, 185, 92, 0.9);
+  box-shadow: 0 0 9px rgba(224, 185, 92, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 @keyframes bookIn {
   from { transform: translateY(-8px) scaleY(0.3); opacity: 0; }
