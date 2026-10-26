@@ -32,37 +32,34 @@ function useCountUp(value, duration = 800) {
   return shown;
 }
 
-const SHELF_MAX = 20;
-// Spine heights cycle through a fixed pattern so the shelf looks hand-stacked
-// but stays stable between renders.
-const SPINE_HEIGHTS = [26, 32, 24, 30, 34, 27, 31];
-const SPINE_WIDTHS = [10, 14, 9, 12, 11, 15, 10];
+const PER_SHELF = 50;
+const MIN_SHELVES = 4; // room for 200 days; more shelves appear beyond that
 
+// One tiny book per streak day on a bookcase, with empty slots for the days
+// still to come. Every 7th book is gold, the newest glows on a record.
 function BookShelf({ current, isRecord }) {
-  if (current <= 0) return null;
-  const first = Math.max(1, current - SHELF_MAX + 1);
-  const spines = [];
-  for (let day = first; day <= current; day++) {
-    const gold = day % 7 === 0;
-    const isNewest = day === current;
-    spines.push(
-      <span
-        key={day}
-        className={`spine spine-${day % 4}${gold ? ' is-gold' : ''}${isNewest && isRecord ? ' is-record' : ''}`}
-        style={{
-          height: SPINE_HEIGHTS[day % SPINE_HEIGHTS.length],
-          flexGrow: SPINE_WIDTHS[(day * 3) % SPINE_WIDTHS.length],
-          '--i': day - first,
-        }}
-      />
-    );
+  const shelves = Math.max(MIN_SHELVES, Math.ceil((current + 1) / PER_SHELF));
+  const rows = [];
+  for (let r = 0; r < shelves; r++) {
+    const slots = [];
+    for (let c = 0; c < PER_SHELF; c++) {
+      const day = r * PER_SHELF + c + 1;
+      if (day > current) {
+        slots.push(<span key={day} className="slot" />);
+        continue;
+      }
+      const cls = [
+        'slot', 'book', `book-${day % 5}`, `tall-${day % 4}`,
+        day % 7 === 0 && 'is-gold',
+        day === current && isRecord && 'is-record',
+      ].filter(Boolean).join(' ');
+      slots.push(
+        <span key={day} className={cls} style={{ '--i': Math.min(day, 100) }} />
+      );
+    }
+    rows.push(<div key={r} className="shelf-row">{slots}</div>);
   }
-  return (
-    <div className="streak-shelf" aria-hidden="true">
-      {first > 1 && <span className="shelf-more">+{first - 1}</span>}
-      <div className="shelf-books">{spines}</div>
-    </div>
-  );
+  return <div className="streak-shelf" aria-hidden="true">{rows}</div>;
 }
 
 export default function StreakBanner({ streak, readCount = 0, total = 0 }) {

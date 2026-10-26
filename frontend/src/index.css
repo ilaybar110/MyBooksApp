@@ -481,70 +481,64 @@ textarea.input-field {
   color: var(--text-muted);
 }
 
-/* Book-stack shelf: one book per streak day, every 7th in gold. */
+/* Bookcase: one tiny book per streak day, empty slots for days to come. */
+.streak-banner { flex-wrap: wrap; }
 .streak-shelf {
-  flex: 1;
-  min-width: 0;
-  align-self: stretch;
+  order: 3;
+  flex: 1 1 100%;
+  direction: ltr;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 4px;
+}
+.shelf-row {
   display: flex;
   align-items: flex-end;
-  justify-content: center;
-  gap: 4px;
+  gap: 2px;
+  height: 15px;
+  padding: 0 2px;
+  border-bottom: 2px solid #5a3d22;
 }
-.shelf-books {
-  display: flex;
-  align-items: flex-end;
-  flex: 1;
-  min-width: 0;
-  justify-content: center;
-  gap: 1px;
-  padding: 0 3px 3px;
-  border-bottom: 3px solid #5a3d22;
-  border-radius: 0 0 2px 2px;
-}
-.shelf-more {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-}
-.spine {
-  --c: #8B5A2B;
-  position: relative;
-  /* Books share the shelf: a 7-day streak gets chunky spines, 30 gets slim ones. */
+.slot {
   flex: 1 1 0;
-  min-width: 3px;
-  max-width: 13px;
-  border-radius: 2px 2px 1px 1px;
+  min-width: 0;
+  height: 100%;
+  border-radius: 1px;
+  /* empty slot: a faint ghost of a book */
+  background: rgba(196, 147, 58, 0.07);
+}
+.book {
+  --c: #8B5A2B;
   background:
-    /* top and bottom bands */
-    linear-gradient(rgba(255, 220, 150, 0.55), rgba(255, 220, 150, 0.55)) 0 4px / 100% 2px no-repeat,
-    linear-gradient(rgba(255, 220, 150, 0.55), rgba(255, 220, 150, 0.55)) 0 8px / 100% 1px no-repeat,
-    linear-gradient(rgba(255, 220, 150, 0.55), rgba(255, 220, 150, 0.55)) 0 calc(100% - 6px) / 100% 2px no-repeat,
-    /* title label */
-    linear-gradient(rgba(255, 235, 190, 0.35), rgba(255, 235, 190, 0.35)) 50% 40% / 40% 34% no-repeat,
+    linear-gradient(rgba(255, 220, 150, 0.5), rgba(255, 220, 150, 0.5)) 0 2px / 100% 1px no-repeat,
     var(--c);
-  box-shadow: inset 2px 0 0 rgba(255, 255, 255, 0.14), inset -2px 0 0 rgba(0, 0, 0, 0.28);
   transform-origin: bottom center;
-  animation: spineIn 450ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-  animation-delay: calc(var(--i) * 70ms + 200ms);
+  animation: bookIn 380ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  animation-delay: calc(var(--i) * 10ms + 200ms);
 }
-.spine-0 { --c: #8B5A2B; }
-.spine-1 { --c: #A8530E; }
-.spine-2 { --c: #5E4A38; }
-.spine-3 { --c: #B07A3C; }
-.spine.is-gold { --c: var(--accent-favorite); }
-.spine.is-record {
+.book-0 { --c: #8B5A2B; }
+.book-1 { --c: #A8530E; }
+.book-2 { --c: #5E4A38; }
+.book-3 { --c: #B07A3C; }
+.book-4 { --c: #7A3E1D; }
+.tall-0 { height: 100%; }
+.tall-1 { height: 82%; }
+.tall-2 { height: 92%; }
+.tall-3 { height: 72%; }
+.book.is-gold { --c: var(--accent-favorite); }
+.book.is-record {
   --c: var(--accent-favorite);
-  box-shadow: inset 2px 0 0 rgba(255, 255, 255, 0.25), inset -2px 0 0 rgba(0, 0, 0, 0.25), 0 0 10px rgba(224, 185, 92, 0.8);
+  height: 100%;
+  box-shadow: 0 0 8px rgba(224, 185, 92, 0.9);
 }
-@keyframes spineIn {
-  from { transform: translateY(-14px) scaleY(0.4); opacity: 0; }
+@keyframes bookIn {
+  from { transform: translateY(-8px) scaleY(0.3); opacity: 0; }
   to   { transform: none; opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .spine { animation: none; }
+  .book { animation: none; }
   .streak-banner.is-celebrating .streak-number { animation: none; }
   .streak-banner.is-celebrating::after { display: none; }
   .streak-fill { transition: none; }
