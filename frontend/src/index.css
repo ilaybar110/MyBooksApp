@@ -481,7 +481,7 @@ textarea.input-field {
   color: var(--text-muted);
 }
 
-/* Book-stack shelf: one spine per streak day, every 7th in gold. */
+/* Book-stack shelf: one book per streak day, every 7th in gold. */
 .streak-shelf {
   flex: 1;
   min-width: 0;
@@ -490,41 +490,51 @@ textarea.input-field {
   align-items: flex-end;
   justify-content: center;
   gap: 4px;
-  padding-bottom: 2px;
 }
 .shelf-books {
   display: flex;
   align-items: flex-end;
-  gap: 2px;
-  padding-bottom: 2px;
-  border-bottom: 2px solid rgba(196, 147, 58, 0.35);
+  gap: 1px;
+  padding: 0 3px 3px;
+  border-bottom: 3px solid #5a3d22;
+  border-radius: 0 0 2px 2px;
 }
 .shelf-more {
   font-family: 'DM Sans', sans-serif;
   font-size: 10px;
   color: var(--text-muted);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 .spine {
-  width: 6px;
-  border-radius: 2px 2px 0 0;
-  background: #8B5A2B;
+  --c: #8B5A2B;
+  position: relative;
+  flex-shrink: 0;
+  border-radius: 2px 2px 1px 1px;
+  background:
+    /* top and bottom bands */
+    linear-gradient(rgba(255, 220, 150, 0.55), rgba(255, 220, 150, 0.55)) 0 6px / 100% 2px no-repeat,
+    linear-gradient(rgba(255, 220, 150, 0.55), rgba(255, 220, 150, 0.55)) 0 10px / 100% 1px no-repeat,
+    linear-gradient(rgba(255, 220, 150, 0.55), rgba(255, 220, 150, 0.55)) 0 calc(100% - 8px) / 100% 2px no-repeat,
+    /* title label */
+    linear-gradient(rgba(255, 235, 190, 0.35), rgba(255, 235, 190, 0.35)) 50% 40% / 40% 34% no-repeat,
+    var(--c);
+  box-shadow: inset 2px 0 0 rgba(255, 255, 255, 0.14), inset -2px 0 0 rgba(0, 0, 0, 0.28);
   transform-origin: bottom center;
   animation: spineIn 450ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-  animation-delay: calc(var(--i) * 45ms + 200ms);
+  animation-delay: calc(var(--i) * 70ms + 200ms);
 }
-.spine-0 { background: #8B5A2B; }
-.spine-1 { background: #A8530E; }
-.spine-2 { background: #6F4A2E; }
-.spine-3 { background: #B8956E; }
-.spine.is-gold { background: var(--accent-favorite); }
+.spine-0 { --c: #8B5A2B; }
+.spine-1 { --c: #A8530E; }
+.spine-2 { --c: #5E4A38; }
+.spine-3 { --c: #B07A3C; }
+.spine.is-gold { --c: var(--accent-favorite); }
 .spine.is-record {
-  background: var(--accent-favorite);
-  box-shadow: 0 0 8px rgba(224, 185, 92, 0.75);
+  --c: var(--accent-favorite);
+  box-shadow: inset 2px 0 0 rgba(255, 255, 255, 0.25), inset -2px 0 0 rgba(0, 0, 0, 0.25), 0 0 10px rgba(224, 185, 92, 0.8);
 }
 @keyframes spineIn {
-  from { transform: scaleY(0); opacity: 0; }
-  to   { transform: scaleY(1); opacity: 1; }
+  from { transform: translateY(-14px) scaleY(0.4); opacity: 0; }
+  to   { transform: none; opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
