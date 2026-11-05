@@ -1084,14 +1084,14 @@
     {
       "id": "h_1791396834007_zfjru",
       "bookId": "fb6e8dc9-683b-4f98-8e1b-469ca1a787df",
-      "markedText": "Leaning out, as I define it, isn't about being 'wrong' - it's about being so arrogantly sure that you're right that you refuse to listen, learn and pay attention to new information. This isn't just a symptom of arrogance - unfortunately, it's often a symptom of being human; the psychological reason why people lean out of important, potentially vital information is because of the incredibly well-studied psychological phenomenon known as cognitive dissonance.\nCoined by the American psychologist Leon Festinger in the 1950s, 'cognitive dissonance' describes the tension you experience when your thoughts conflict with your behav-iour.",
+      "markedText": "Leaning out, as I define it, isn't about being 'wrong' - it's about being so arrogantly sure that you're right that you refuse to listen, learn and pay attention to new information. This isn't just a symptom of arrogance - unfortunately, it's often a symptom of being human; the psychological reason why people lean out of important, potentially vital information is because of the incredibly well-studied psychological phenomenon known as cognitive dissonance.\nCoined by the American psychologist Leon Festinger in the 1950s, 'cognitive dissonance' describes the tension you experience when your thoughts conflict with your behaviour.",
       "fullContext": "",
       "pageNumber": 46,
       "isFavorite": false,
       "tags": [],
-      "isEdited": false,
+      "isEdited": true,
       "dateAdded": "2026-10-07T18:13:54.007Z",
-      "updatedAt": 1791396834009
+      "updatedAt": 1793877032544
     },
     {
       "id": "h_1791396898648_9jya4",
@@ -1682,5 +1682,5 @@
     "lastCompletedDate": "2026-11-04",
     "lastFreezeDate": "2026-10-25"
   },
-  "lastModified": 1793824255340
+  "lastModified": 1793877032544
 }
